@@ -9,6 +9,8 @@ export default function Home() {
             <Link href="/sign-up"> Sign Up</Link>
             <Link href="terms-of-service"> Terms of Service</Link>
             <Link href="privacy-policy"> Privacy Policy</Link>
+            <Link href="forgot-password"> Forgot Password</Link>
+            <Link href="reset-password"> Reset Password</Link>
         </div>        
     </main>
   );

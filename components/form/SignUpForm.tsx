@@ -15,6 +15,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+
  
 const formSchema = z.object({
     username: z.string().min(3).max(50),
@@ -31,26 +32,35 @@ const formSchema = z.object({
 
 export function SignUpForm() {
     // 1. Define your form.
+
     const form = useForm<z.infer<typeof formSchema>>({
       resolver: zodResolver(formSchema),
       defaultValues: {
         email: "",
         password: "",
         username: "",
+        confirmPassword: "",
       },
     })
    
     // 2. Define a submit handler.
-    function onSubmit(values: z.infer<typeof formSchema>) {
+    async function onSubmit(values: z.infer<typeof formSchema>) {
       // Do something with the form values.
       // ✅ This will be type-safe and validated.
-      console.log(values)
+      const response = await fetch('/api/auth/createUser', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+      })
+      console.log(response)
     }
 
     return (
         <Form {...form}>
           <h1 className="text-2xl text-center font-semibold pb-3">Sign Up</h1>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
             <FormField
               control={form.control}
               name="username"
@@ -71,7 +81,7 @@ export function SignUpForm() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="Enter email..." {...field} />
+                    <Input placeholder="Enter email..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -84,7 +94,7 @@ export function SignUpForm() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter password.." {...field} />
+                    <Input type="password" placeholder="Enter password.." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -97,15 +107,20 @@ export function SignUpForm() {
                 <FormItem>
                   <FormLabel>Confirm Password</FormLabel>
                   <FormControl>
-                    <Input placeholder="Confirm passwored..." {...field} />
+                    <Input type="password" placeholder="Confirm passwored..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <Button type="submit" variant="outline" className="text-black w-full">Submit</Button>
-            <p className="text-gray-500">Already have an account? <Link href="/sign-in" className="text-blue-500">Sign In</Link></p>  
-          <p className="text-gray-500">By signing up, you agree to our <Link href="/terms-of-service" className="text-blue-500">Terms of Service</Link> and <Link href="/privacy-policy" className="text-blue-500">Privacy Policy</Link></p>
+            <div>
+              <p className="text-white font-size-sm">Already have an account? <Link href="/sign-in" className="text-blue-500">Sign In</Link></p>  
+            </div>
+            <div>
+                <p className="text-white font-size-sm">By signing up, you agree to our <Link href="/terms-of-service" className="text-blue-500">Terms of Service</Link> and <Link href="/privacy-policy" className="text-blue-500">Privacy Policy</Link>
+                </p>
+            </div>
           </form>
         </Form>
       )
