@@ -71,7 +71,9 @@ export function SignInForm() {
                 </FormItem>
               )}
             />
-            <Button type="submit" variant="outline" className="text-black w-full">Submit</Button>
+            <div>
+              <Button type="submit" variant="outline" className="text-black w-full mt-2">Submit</Button>
+            </div>
             <div>
               <p className="text-white text-sm">Don't Have an Account? <Link href="/sign-up" className="text-blue-500">Sign Up</Link></p> 
             </div> 

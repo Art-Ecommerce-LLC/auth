@@ -4,8 +4,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import Link from "next/link"
-
-import { Button } from "@/components/ui/button"
+import { useToast } from "../hooks/use-toast"
+import { Button } from "../ui/button"
 import {
   Form,
   FormControl,
@@ -13,8 +13,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+} from "../ui/form"
+import { Input } from "../ui/input"
 
  
 const formSchema = z.object({
@@ -32,7 +32,7 @@ const formSchema = z.object({
 
 export function SignUpForm() {
     // 1. Define your form.
-
+    const { toast } = useToast()
     const form = useForm<z.infer<typeof formSchema>>({
       resolver: zodResolver(formSchema),
       defaultValues: {
@@ -54,8 +54,29 @@ export function SignUpForm() {
         },
         body: JSON.stringify(values),
       })
-      console.log(response)
+
+      const responseData = await response.json()
+      
+      if (responseData.error) {
+        toast({
+          variant: "destructive",
+          description: "Something Went Wrong,"
+        });
+        // wipe the form
+        form.reset();
+      } else {
+        toast({
+          variant: "success",
+          description: "Account Created Successfully, Redirecting...",
+        });
+        // Redirect to the verify email page
+        // wipe the form
+        form.reset();
+        setTimeout(() => {
+          window.location.href = `/verify-email?tempCUID=${encodeURIComponent(responseData.tempCUID)}`;
+        }, 2000)
     }
+  }
 
     return (
         <Form {...form}>
@@ -113,7 +134,9 @@ export function SignUpForm() {
                 </FormItem>
               )}
             />
-            <Button type="submit" variant="outline" className="text-black w-full">Submit</Button>
+            <div>
+              <Button type="submit" variant="outline" className="text-black w-full font-size-sm mt-2">Submit</Button>
+            </div>
             <div>
               <p className="text-white font-size-sm">Already have an account? <Link href="/sign-in" className="text-blue-500">Sign In</Link></p>  
             </div>

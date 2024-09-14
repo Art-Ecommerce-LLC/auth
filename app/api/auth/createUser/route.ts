@@ -4,7 +4,6 @@ import { hash } from "bcrypt";
 import * as z from "zod";
 import { headers } from 'next/headers';
 import nodemailer from 'nodemailer';
-import { normalize } from "path";
 
 // Define a schema for input Validation
 const userSchema = z
@@ -41,7 +40,7 @@ export async function POST(req: Request) {
 
         // Check if password and confirmPassword match
         if (password !== confirmPassword) {
-            return NextResponse.json({message:"Passwords don't match"}, {status:400})
+            return NextResponse.json({error:"Passwords don't match"}, {status:400})
         }
 
         // Check if email already exists
@@ -49,7 +48,7 @@ export async function POST(req: Request) {
             where: {email:normalizedEmail}
         })
         if (existingUser) {
-            return NextResponse.json({message:"User with this email already exists"}, {status:409})
+            return NextResponse.json({error:"User with this email already exists"}, {status:409})
         }
 
         // Check if username already exists
@@ -57,7 +56,7 @@ export async function POST(req: Request) {
             where: {username:normalizedUsername}
         })
         if (existingUsername) {
-            return NextResponse.json({message:"User with this username already exists"}, {status:409})
+            return NextResponse.json({error:"User with this username already exists"}, {status:409})
         }
 
         const hashedPassword = await hash(password, 10);
@@ -83,7 +82,7 @@ export async function POST(req: Request) {
             }
             });
         // send verification url with tempUUID
-        const verificationUrl = `${process.env.NEXTAUTH_URL}/api/verify-email?tempUUID=${encodeURIComponent(user.tempCUID!)}`;
+        const verificationUrl = `${process.env.NEXTAUTH_URL}/api/auth/verifyEmail?tempCUID=${encodeURIComponent(user.tempCUID!)}`;
         await transporter.sendMail({
             from: process.env.SMTP_USER,
             to: normalizedEmail,
@@ -93,73 +92,9 @@ export async function POST(req: Request) {
             });
 
 
-        return NextResponse.json({message:"User Created Successfully"}, {status:200})
+        return NextResponse.json({tempCUID: user.tempCUID}, {status:200})
 
-
-        // Normalize email and username to lowercase
-        // const normalizedEmail = email.toLowerCase();
-        // const normalizedUsername = username.toLowerCase();
-
-        // // Check if email already exists
-
-        // if (existingUserByEmail) {
-        //     return NextResponse.json({user:null, message:"User with this email already exists"}, {status:409})
-        // }
-
-        // // Check if email already exists
-        // const existingUserByUsername = await db.user.findUnique({
-        //     where: {username : normalizedUsername}
-        // })
-
-        // if (existingUserByUsername) {
-        //     return NextResponse.json({user:null, message:"User with this username already exists"}, {status:409})
-        // }
-
-        // // Get the user ip address
-        // const ipAddress = IP();
-        // // Generate a session token (JWT) that includes the userId and email
-  
-        
-        // // Create a new user
-        // const hashedPassword = await hash(password, 10);
-        // const emailLinkTime = new Date();
-        // const newUser = await db.user.create({
-        //     data: {
-        //         email: normalizedEmail, 
-        //         username: normalizedUsername, 
-        //         password: hashedPassword,
-        //         ipAddress: ipAddress,
-        //         updatedAt: new Date(),
-        //         createdAt: new Date(),
-        //         emailLinkTime: emailLinkTime
-        //     }
-        // })
-        // // Encrypt the userId and email
-        // const sensitiveData = JSON.stringify({ userId: newUser.id, email: newUser.email, emailLinkTime: emailLinkTime });
-        // const encryptedData = encrypt(sensitiveData);
-
-        // // Send the encrypted data in the verification email link
-        // const verificationUrl = `${process.env.NEXTAUTH_URL}/api/verify-email?sessionToken=${encodeURIComponent(encryptedData)}`;
-
-        // const transporter = nodemailer.createTransport({
-        //     service: "gmail",
-        //     auth: {
-        //         user: process.env.SMTP_USER,
-        //         pass: process.env.SMTP_PASSWORD
-        //     }
-        //     });
-
-        // await transporter.sendMail({
-        //     from: process.env.SMTP_USER,
-        //     to: normalizedEmail,
-        //     subject: 'Email Verification',
-        //     text: `Please verify your email by clicking this link: ${verificationUrl}`,
-        //     html: `<p>Click <a href="${verificationUrl}">here</a> to verify your email.</p>`,
-        //     });
-
-        return NextResponse.json({message:"User Created Successfully"}, {status:200})
     } catch (error) {
-        console.log(error)
-        return NextResponse.json({message:"Something Went Wrong"}, {status:500})
+        return NextResponse.json({error:"Something Went Wrong"}, {status:500})
     }
 }

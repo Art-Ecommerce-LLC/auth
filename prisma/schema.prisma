@@ -10,18 +10,19 @@ datasource db {
 }
  
 model User {
-  id            String    @id @default(cuid())
-  username      String?   @unique
-  password      String?
-  email         String?   @unique
-  emailVerified Boolean?   @default(false) @map("email_verified")
-  tempCUIDTime  DateTime? @map("temp_cuid_time")
-  tempCUID      String?   @default(cuid())
-  image         String?
-  mfaVerified   Boolean?   @default(false) @map("mfa_verified")
-  ipAddress     String?   @map("ip_address") 
-  updatedAt     DateTime? @map("updated_at") @updatedAt
-  createdAt     DateTime? @map("created_at") @default(now())
+  id              String    @id @default(cuid()) @unique
+  username        String?   @unique
+  password        String?
+  email           String?   @unique
+  emailVerified   Boolean?   @default(false) @map("email_verified")
+  tempCUIDTime    DateTime? @map("temp_cuid_time")
+  tempCUID        String?   @default(cuid()) @unique @map("temp_cuid")
+  image           String?
+  mfaVerified     Boolean?   @default(false) @map("mfa_verified")
+  mfaVerifiedTime DateTime? @map("mfa_verified_time")
+  ipAddress       String?   @map("ip_address") 
+  updatedAt       DateTime? @map("updated_at") @updatedAt
+  createdAt       DateTime? @map("created_at") @default(now())
  
   @@map("users")
 
