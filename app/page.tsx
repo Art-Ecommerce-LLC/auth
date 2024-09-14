@@ -1,5 +1,5 @@
-import Link from 'next/link';
 
+import Link from 'next/link';
 export default function Home() {
   return (
     <main className="flex min-h-screen w-full items-center justify-center bg-primary text-primary-foreground">

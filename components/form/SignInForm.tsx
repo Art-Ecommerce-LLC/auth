@@ -15,7 +15,11 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
- 
+import { useToast } from "../hooks/use-toast"
+import { cookies } from 'next/headers'
+
+
+    
 const formSchema = z.object({
     email: z.string().email({ message: "Invalid email address" }).min(5).max(50),
     password: z.string().min(8).max(50).regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[a-zA-Z\d!@#$%^&*]{8,}$/, {
@@ -26,6 +30,7 @@ const formSchema = z.object({
 
 export function SignInForm() {
     // 1. Define your form.
+    const { toast } = useToast()
     const form = useForm<z.infer<typeof formSchema>>({
       resolver: zodResolver(formSchema),
       defaultValues: {
@@ -35,11 +40,67 @@ export function SignInForm() {
     })
    
     // 2. Define a submit handler.
-    function onSubmit(values: z.infer<typeof formSchema>) {
+    async function onSubmit(values: z.infer<typeof formSchema>) {
       // Do something with the form values.
       // ✅ This will be type-safe and validated.
-      console.log(values)
+      const response = await fetch('/api/auth/validateLogin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+      })
+
+      const responseData = await response.json()
+
+      if (responseData.error) {
+        form.reset()
+        toast({
+          variant: "destructive",
+          description: "Something Went Wrong,"
+        });
+      } else if(responseData.tempCUID){
+        toast({
+          variant: "success",
+          description: "User has not verified email yet, please verify email to login",
+        });
+        form.reset();
+        setTimeout(() => {
+          window.location.href = `/verify-email?tempCUID=${encodeURIComponent(responseData.tempCUID)}`;
+        }, 2000)
+      } else  {
+        // log the sessionToken from the res.cookies
+
+        toast({
+          variant: "success",
+          description: "Login Successful",
+        });
+        form.reset();
+
+        // Validate the sessionToken from an API call
+        const sessionResponse = await fetch('/api/auth/validateSession', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+
+        const sessionData = await sessionResponse.json()
+        if (sessionData.error) {
+          toast({
+            variant: "destructive",
+            description: "Something Went Wrong",
+          });
+        } else {
+          console.log(sessionData.sessionToken)
+        }
+        
+        setTimeout(() => {
+          window.location.href = `/`;
+        }, 2000)
+
     }
+  }
 
     return (
         <Form {...form}>
@@ -65,7 +126,7 @@ export function SignInForm() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter password..." {...field} />
+                    <Input type="password" placeholder="Enter password..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

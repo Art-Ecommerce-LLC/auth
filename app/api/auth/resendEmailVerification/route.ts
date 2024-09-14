@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import db from "@/lib/db";
 import * as z from "zod";
 import nodemailer from 'nodemailer';
-import cuid from 'cuid';
+import { createId } from '@paralleldrive/cuid2';
 
 // Define a schema for input Validation
 const userSchema = z
@@ -17,7 +17,7 @@ async function generateUniqueTempCUID(): Promise<string> {
 
     // Loop until we find a unique tempCUID
     while (!isUnique) {
-        newTempCUID = cuid(); // Generate a new cuid
+        newTempCUID = createId(); // Generate a new cuid
 
         // Check if this cuid is already in the database
         const existingUser = await db.user.findUnique({
@@ -78,7 +78,7 @@ export async function POST(req: Request) {
             html: `<p>Click <a href="${verificationUrl}">here</a> to verify your email.</p>`,
             });
 
-        return NextResponse.json({message:"User found"}, {status:200})
+        return NextResponse.json({tempCUID:newTempCUID}, {status:200})
     } catch (error) {
         return NextResponse.json({ error: "Something went wrong" }, { status: 500 })
     }

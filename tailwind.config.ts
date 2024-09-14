@@ -37,7 +37,8 @@ const config: Config = {
   			},
 			success: {
 				DEFAULT: 'hsl(var(--success))',
-				foreground: 'hsl(var(--success-foreground))'
+				foreground: 'hsl(var(--success-foreground))',
+				hover: 'hsl(var(--success-hover))',
 			},
   			muted: {
   				DEFAULT: 'hsl(var(--muted))',

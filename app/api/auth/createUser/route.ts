@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import db from "@/lib/db";
 import { hash } from "bcrypt";
 import * as z from "zod";
@@ -28,7 +28,7 @@ const IP = (): string => {
     return headers().get('x-real-ip') ?? FALLBACK_IP_ADDRESS;
   };
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
         const { email, username, password, confirmPassword } = userSchema.parse(body);
