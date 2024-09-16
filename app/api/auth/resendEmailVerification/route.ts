@@ -1,65 +1,50 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
-import * as z from "zod";
 import nodemailer from 'nodemailer';
-import { createId } from '@paralleldrive/cuid2';
-
-// Define a schema for input Validation
-const userSchema = z
-  .object({
-    tempCUID: z.string().min(1, 'tempCUID is required'),
-})
-
-// Function to generate a unique tempCUID
-async function generateUniqueTempCUID(): Promise<string> {
-    let newTempCUID: string = "";
-    let isUnique = false;
-
-    // Loop until we find a unique tempCUID
-    while (!isUnique) {
-        newTempCUID = createId(); // Generate a new cuid
-
-        // Check if this cuid is already in the database
-        const existingUser = await db.user.findUnique({
-            where: { tempCUID: newTempCUID },
-        });
-
-        if (!existingUser) {
-            isUnique = true; // If no user exists with this cuid, it's unique
-        }
-    }
-
-    return newTempCUID;
-}
+import { decrypt } from "@/lib/encrypt";
+import { deleteSession, createSession } from "@/lib/session";
+import { cookies } from "next/headers";
 
 export async function POST(req: Request) {
     try {
-        const body = await req.json();
-        const { tempCUID } = userSchema.parse(body);
+        const body = cookies();
+        // Grab the session from the cookies
+        const session = body.get('session');
 
-        // Check if tempCUID exists
-        const existingUser = await db.user.findUnique({
-            where: {tempCUID}
-        })
-        if (!existingUser) {
-            return NextResponse.json({error:"User not found"}, {status:404})
+        if (!session) {
+            return NextResponse.json({ error: "Session not found" }, { status: 404 })
         }
+        const decryptedSession = await decrypt(session.value);
+
+        const sessionData = await db.session.findUnique({
+            where: { id: decryptedSession.sessionId }
+        })
+
+        // Check if the session exists
+        if (!sessionData) {
+            return NextResponse.json({ error: "Session not found" }, { status: 404 })
+        }
+                // Update the session with a new token and expiration
+
+        // Check if the user exists
+        const user = await db.user.findUnique({
+            where: { id: sessionData.userId }
+        })
+
+        // Check if the user exists
+        if (!user) {
+            return NextResponse.json({ error: "User not found" }, { status: 404 })
+        }
+
         // Check if the email was already verified
-        if (existingUser.emailVerified) {
-            return NextResponse.json({error:"Email already verified"}, {status:409})
+        if (user.emailVerified) {
+            return NextResponse.json({ error: "Email already verified" }, { status: 409 })
         }
-        // Assign new tempCUID and new tempCUIDTime, because we want to invalidate the old one
-        const newTempCUIDTime = new Date();
-        // If it has, update the tempCUID with a new one and update the tempCUIDTime
-        const newTempCUID = await generateUniqueTempCUID();
-        await db.user.update({
-            where: {tempCUID},
-            data: {
-                tempCUID: newTempCUID,
-                tempCUIDTime: newTempCUIDTime,
-            }
-        })
-
+        await deleteSession(sessionData.id);
+        const newSession = await createSession(user.id);
+        
+        // resend email verification
+        const verificationUrl = `${process.env.NEXTAUTH_URL}/api/auth/verifyEmail?session=${newSession}`;
         const transporter = nodemailer.createTransport({
             service: "gmail",
             auth: {
@@ -67,18 +52,16 @@ export async function POST(req: Request) {
                 pass: process.env.SMTP_PASSWORD
             }
             });
-
-        // send verification url with tempUUID
-        const verificationUrl = `${process.env.NEXTAUTH_URL}/api/auth/verifyEmail?tempCUID=${encodeURIComponent(newTempCUID)}`;
+;
         await transporter.sendMail({
             from: process.env.SMTP_USER,
-            to: existingUser.email!,
+            to: user.email!,
             subject: 'Email Verification',
             text: `Please verify your email by clicking this link: ${verificationUrl}`,
             html: `<p>Click <a href="${verificationUrl}">here</a> to verify your email.</p>`,
             });
 
-        return NextResponse.json({tempCUID:newTempCUID}, {status:200})
+        return NextResponse.json({success: "success "}, {status:200})
     } catch (error) {
         return NextResponse.json({ error: "Something went wrong" }, { status: 500 })
     }

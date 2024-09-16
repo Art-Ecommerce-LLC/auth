@@ -6,9 +6,7 @@ import { useToast } from "@/components/hooks/use-toast"
 
 export default function VerifyEmailPage() {
     const { toast } = useToast()
-    const searchParams = useSearchParams()
 
-    const tempCUID = searchParams.get('tempCUID')
     async function resendEmail() {
         // Send email to user with backend POST request
         const response = await fetch('/api/auth/resendEmailVerification', {
@@ -16,7 +14,6 @@ export default function VerifyEmailPage() {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({tempCUID}),
             })
         const responseData = await response.json()
         if (responseData.error) {

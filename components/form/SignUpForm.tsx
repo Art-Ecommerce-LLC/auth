@@ -73,7 +73,7 @@ export function SignUpForm() {
         // wipe the form
         form.reset();
         setTimeout(() => {
-          window.location.href = `/verify-email?tempCUID=${encodeURIComponent(responseData.tempCUID)}`;
+          window.location.href = '/verify-email';
         }, 2000)
     }
   }

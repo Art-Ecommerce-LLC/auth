@@ -4,6 +4,8 @@ import { hash } from "bcrypt";
 import * as z from "zod";
 import { headers } from 'next/headers';
 import nodemailer from 'nodemailer';
+import { createSession } from "@/lib/session";
+import { encrypt } from "@/lib/encrypt";
 
 // Define a schema for input Validation
 const userSchema = z
@@ -70,7 +72,6 @@ export async function POST(req: NextRequest) {
                 ipAddress: ipAddress,
                 updatedAt: recordCreationTime,
                 createdAt: recordCreationTime,
-                tempCUIDTime: recordCreationTime
             }
         })
 
@@ -81,8 +82,12 @@ export async function POST(req: NextRequest) {
                 pass: process.env.SMTP_PASSWORD
             }
             });
-        // send verification url with tempUUID
-        const verificationUrl = `${process.env.NEXTAUTH_URL}/api/auth/verifyEmail?tempCUID=${encodeURIComponent(user.tempCUID!)}`;
+        // create session token
+        const session = await createSession(user.id);
+
+        // send email verification with the encrypted session token
+        const verificationUrl = `${process.env.NEXTAUTH_URL}/api/auth/verifyEmail?session=${session}`;
+
         await transporter.sendMail({
             from: process.env.SMTP_USER,
             to: normalizedEmail,
@@ -92,7 +97,7 @@ export async function POST(req: NextRequest) {
             });
 
 
-        return NextResponse.json({tempCUID: user.tempCUID}, {status:200})
+        return NextResponse.json({success: "user Created"}, {status:200})
 
     } catch (error) {
         return NextResponse.json({error:"Something Went Wrong"}, {status:500})

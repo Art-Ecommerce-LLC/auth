@@ -15,17 +15,13 @@ model User {
   password        String?
   email           String?   @unique
   emailVerified   Boolean?  @default(false) @map("email_verified")
-  tempCUIDTime    DateTime? @map("temp_cuid_time")
-  tempCUID        String?   @default(cuid()) @unique @map("temp_cuid")
   image           String?
   mfaVerified     Boolean?  @default(false) @map("mfa_verified")
-  mfaVerifiedTime DateTime? @map("mfa_verified_time")
   ipAddress       String?   @map("ip_address") 
   updatedAt       DateTime? @map("updated_at") @updatedAt
   createdAt       DateTime? @map("created_at") @default(now())
   
   sessions Session[] // One-to-many relation to the Session model
-
   @@map("users")
 
 }
@@ -33,12 +29,11 @@ model User {
 model Session {
   id               String   @id @default(cuid()) @unique
   userId           String   @map("user_id")
-  user             User     @relation(fields: [userId], references: [id])
-  sessionToken     String   @default(cuid()) @map("session_token") @unique
-  sessionTokenTime DateTime @map("session_token_time")
   createdAt        DateTime @map("created_at") @default(now())
   updatedAt        DateTime @map("updated_at") @updatedAt
+  expiresAt        DateTime @map("expires_at")
 
+  user             User     @relation(fields: [userId], references: [id])
   @@map("sessions")
 }
  
