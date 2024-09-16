@@ -15,48 +15,6 @@ const userSchema = z
       .min(8, 'Password must have than 8 characters'),
 })
 
-// Function to generate a unique tempCUID
-async function generateUniqueTempCUID(): Promise<string> {
-    let newTempCUID: string = "";
-    let isUnique = false;
-
-    // Loop until we find a unique tempCUID
-    while (!isUnique) {
-        newTempCUID = createId(); // Generate a new cuid
-
-        // Check if this cuid is already in the database
-        const existingUser = await db.user.findUnique({
-            where: { tempCUID: newTempCUID },
-        });
-
-        if (!existingUser) {
-            isUnique = true; // If no user exists with this cuid, it's unique
-        }
-    }
-
-    return newTempCUID;
-}
-
-async function generateUniqueSessionToken(): Promise<string> {
-    let newSessionToken: string = "";
-    let isUnique = false;
-
-    // Loop until we find a unique SessionToken
-    while (!isUnique) {
-        newSessionToken = createId(); // Generate a new cuid
-
-        // Check if this cuid is already in the database
-        const existingSession = await db.session.findUnique({
-            where: { sessionToken: newSessionToken },
-        });
-
-        if (!existingSession) {
-            isUnique = true; // If no user exists with this sessionToken, it's unique
-        }
-    }
-
-    return newSessionToken;
-}
 
 // POST /api/auth/validateLogin
 export async function POST(req: NextRequest, res: NextResponse) {
@@ -101,18 +59,6 @@ export async function POST(req: NextRequest, res: NextResponse) {
         // Check if the user is mfaVerified
         if (!existingUser.mfaVerified) {
             // Create a new tempCUID and send it back to the user for redirection to the mfa page
-            const newTempCUID = await generateUniqueTempCUID();
-            const newTempCUIDTime = new Date();
-            await db.user.update({
-                where: {email:normalizedEmail},
-                data: {
-                    tempCUID: newTempCUID,
-                    tempCUIDTime: newTempCUIDTime,
-                }
-            })
-            
-            const newSessionToken = await generateUniqueSessionToken();
-            const newSessionTokenTime = new Date();
 
             // Save the session token in the database
             await db.session.create({
