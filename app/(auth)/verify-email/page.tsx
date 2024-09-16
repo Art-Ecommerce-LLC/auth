@@ -1,9 +1,9 @@
 "use client";
 
-import { useSearchParams } from 'next/navigation'
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/components/hooks/use-toast"
-
+import { buttonVariants } from "@/components/ui/button"
 export default function VerifyEmailPage() {
     const { toast } = useToast()
 
@@ -34,7 +34,8 @@ export default function VerifyEmailPage() {
         <div className="w-full max-w-96 min-w-80 p-2">
             <h1> Verify Email</h1>
             <p> You must verify your email to acess your account</p>
-            <Button onClick={resendEmail} type="submit" variant="outline" className="text-black w-full font-size-sm mt-2">Resend Email</Button>
+            <Button onClick={resendEmail} type="submit" variant="outline" className="text-black w-full font-size-sm mt-2 mb-3">Resend Email</Button>
+            <Link href="/sign-in" className={buttonVariants({ variant: "success" })}>Sign In</Link>
         </div>        
     </main>
     );

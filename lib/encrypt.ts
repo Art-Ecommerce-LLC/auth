@@ -7,10 +7,15 @@ const secretKey = jose.base64url.decode(process.env.ENCRYPTION_SECRET!); // Ensu
 
 // Function to encrypt a payload
 export async function encrypt(payload: Record<string, any>): Promise<string> {
-  const jwe = await new jose.EncryptJWT(payload)
+  try {
+    const jwe = await new jose.EncryptJWT(payload)
     .setProtectedHeader({ alg: 'dir', enc: 'A256GCM' }) // Direct encryption with AES-256-GCM
     .encrypt(secretKey); // Encrypt with the symmetric key
-  return jwe;
+    return jwe;
+  } catch (error) {
+    console.log(error);
+    return '';
+}
 }
 
 // Function to decrypt a payload
@@ -26,6 +31,7 @@ export async function decrypt(encryptedPayload: string): Promise<Record<string, 
     const payload = JSON.parse(decodedPayload);
     return payload;
   } catch (error) {
-    throw new Error('Invalid or expired token');
+    console.log(error);
+    return {};
   }
 }

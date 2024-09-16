@@ -5,7 +5,6 @@ import * as z from "zod";
 import { headers } from 'next/headers';
 import nodemailer from 'nodemailer';
 import { createSession } from "@/lib/session";
-import { encrypt } from "@/lib/encrypt";
 
 // Define a schema for input Validation
 const userSchema = z

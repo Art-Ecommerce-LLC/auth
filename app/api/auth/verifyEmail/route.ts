@@ -1,7 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 import db from "@/lib/db";
 import * as z from "zod";
-import { cookies } from "next/headers";
 import { decrypt } from "@/lib/encrypt";
 
 // Define a jwt schema for input Validation
@@ -9,11 +8,25 @@ const jwtSchema = z.object({
     session: z.string().min(1),
 })
 
-async function updateEmailAuthSession(sessionId: string) {
+
+export async function GET(req: NextRequest) {
+    try {
+        // Grab the encrypted session data from the sessionId url parameter
+        const { searchParams } = new URL(req.url);
+        const session = searchParams.get('session');
+
+        // validate the session
+        console.log({"params session": session})
+        
+        const { session: sessionString} = jwtSchema.parse({ session });
+        const decryptedSession = await decrypt(sessionString);
+        console.log({"decrypted session" : decryptedSession})
 
         const sessionData = await db.session.findUnique({
-            where: { id: sessionId }
+            where: { sessionId: decryptedSession.sessionId }
         })
+
+        console.log({"sessionData": sessionData})
 
         // Check if the session exists
         if (!sessionData) {
@@ -43,30 +56,6 @@ async function updateEmailAuthSession(sessionId: string) {
             }
         })
 
-}
-
-export async function GET(req: NextRequest) {
-    try {
-        // Grab the encrypted session data from the sessionId url parameter
-        const { searchParams } = new URL(req.url);
-        const session = searchParams.get('session');
-
-        // validate the session
-        if (!session){
-            const body = cookies();
-            // Grab the session from the cookies
-            const session = body.get('session');
-            // Decrypt the session
-            if (!session) {
-                return NextResponse.json({ error: "Session not found" }, { status: 404 })
-            }
-            const decryptedSession = await decrypt(session.value);
-            await updateEmailAuthSession(decryptedSession.sessionId);
-        } else {
-            const { session: sessionString} = jwtSchema.parse({ session });
-            const decryptedSession = await decrypt(sessionString);
-            await updateEmailAuthSession(decryptedSession.sessionId);
-        }
         return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/verified-email`)
     } catch (error) {
         console.error(error)

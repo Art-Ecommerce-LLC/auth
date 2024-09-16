@@ -2,9 +2,10 @@ import { NextResponse, NextRequest } from "next/server";
 import db from "@/lib/db";
 import bcrypt from "bcrypt";
 import * as z from "zod";
-import { headers } from 'next/headers';
-import { createId } from '@paralleldrive/cuid2';
-
+import { cookies } from "next/headers";
+import { createOTPSession, createSession, deleteSession } from "@/lib/session";
+import { decrypt } from "@/lib/encrypt";
+import nodemailer from 'nodemailer';
 // Define a schema for input Validation
 const userSchema = z
   .object({
@@ -36,55 +37,131 @@ export async function POST(req: NextRequest, res: NextResponse) {
         // Check if password matches
         const isPasswordValid = await bcrypt.compare(password, existingUser.password!);
         if (!isPasswordValid) {
-            return NextResponse.json({error:"Email or Username are incorrect"}, {status:401})
+            return NextResponse.json({error:"Email or Username are incorrect"}, {status:404})
         }
 
         // Check if the email was already verified
         if (!existingUser.emailVerified) {
             // Submit a resend email verification request
+            // Check if their is already a session associated with the user
+            const encryptedSession = cookies().get('session');
+            
+            if (!encryptedSession) {
+                // Create a new session for the user
+                await createSession(existingUser.id);
+            }
+
+            // Send the email verification
             const response = await fetch(`${process.env.NEXTAUTH_URL}/api/auth/resendEmailVerification`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({tempCUID:existingUser.tempCUID}),
             })
             const responseData = await response.json()
             if (responseData.error) {
-                return NextResponse.json({error:"Something went wrong in email verification sending"}, {status:401})
+                return NextResponse.json({error:"Something went wrong in email verification sending"}, {status:500})
             }
-            return NextResponse.json({tempCUID:responseData.tempCUID}, {status:401})
+            // Return a unauthorized response
+            return NextResponse.json({error:"Email not verified"}, {status:401})
         }
 
-        // Check if the user is mfaVerified
-        if (!existingUser.mfaVerified) {
-            // Create a new tempCUID and send it back to the user for redirection to the mfa page
+        // Check if their is already a session associated with the user
+        const encryptedSession = cookies().get('session');
+        if (!encryptedSession) {
+            // if their isn't create a new session for the user
+            const encryptedSessionData = await createSession(existingUser.id);
+            // Decrypt the session
+            const decSession = await decrypt(encryptedSessionData);
 
-            // Save the session token in the database
-            await db.session.create({
-                data: {
-                    sessionToken: newSessionToken,
-                    sessionTokenTime: newSessionTokenTime,
-                    userId: existingUser.id,
-                },       
-            });
-            const res = NextResponse.json({ success: "User logged in" }, { status: 200 });
-            const isProduction = process.env.NODE_ENV === 'production';
+            // since default session is not MFAverified, we will return unauthorized code for not OTP verified
+            const newOTP = await createOTPSession(decSession.sessionId);
 
-            // Add the cookie with secure flags
-            res.cookies.set('sessionToken', newSessionToken, {
-                httpOnly: true,    
-                secure: isProduction,    
-                sameSite: 'strict', 
-                path: '/',      
-                maxAge: 60 * 60 * 24 * 15, // 15 day expiry (in seconds) — adjust based on your needs
-            });
+            // Send an email to the user with the new OTP
+            const transporter = nodemailer.createTransport({
+                service: "gmail",
+                auth: {
+                    user: process.env.SMTP_USER,
+                    pass: process.env.SMTP_PASSWORD
+                }
+                });
 
-            return res
+            await transporter.sendMail({
+                from: process.env.SMTP_USER,
+                to: normalizedEmail,
+                subject: 'OTP Verification',
+                text: `Please verify your OTP`,
+                html: `<p>Your OTP is: ${newOTP}</p>`,
+                });   
+
+            return NextResponse.json({error:"OTP not verified"}, {status:402})
         }
 
-    } catch (error) {
-        console.error(error)
-        return NextResponse.json({ error: "Something went wrong" }, { status: 500 })
+        // check if the encrypted session is OTP verified
+        const decryptedSession = await decrypt(encryptedSession.value);
+        const sessionData = await db.session.findUnique({
+            where: { sessionId: decryptedSession.sessionId }
+        })
+        if (!sessionData) {
+            // if their isn't a database session for the cookie delete the old cookie and create a new session
+            await deleteSession(decryptedSession.sessionId);
+            const session = await createSession(existingUser.id);
+            // Decrypt the session
+            const newSessionDecrypt = await decrypt(session);
+            const sessionData = await db.session.findUnique({
+                where: { sessionId: newSessionDecrypt.sessionId }
+            })
+            if (!sessionData) {
+                return NextResponse.json({error:"Eror creating new session"}, {status:500})
+            }
+
+            const newOTP = await createOTPSession(sessionData.sessionId);
+
+            // Send an email to the user with the new OTP
+            const transporter = nodemailer.createTransport({
+                service: "gmail",
+                auth: {
+                    user: process.env.SMTP_USER,
+                    pass: process.env.SMTP_PASSWORD
+                }
+                });
+
+            await transporter.sendMail({
+                from: process.env.SMTP_USER,
+                to: normalizedEmail,
+                subject: 'OTP Verification',
+                text: `Please verify your OTP`,
+                html: `<p>Your OTP is: ${newOTP}</p>`,
+                });   
+
+
+            return NextResponse.json({error:"OTP not verified"}, {status:402})
+        }
+        // Now we can return a success response if the user is verified
+        if (sessionData.mfaVerified) {
+            return NextResponse.json({success:"success"}, {status:200})
+        } else {
+            const newOTP = await createOTPSession(sessionData.sessionId);
+
+            // Send an email to the user with the new OTP
+            const transporter = nodemailer.createTransport({
+                service: "gmail",
+                auth: {
+                    user: process.env.SMTP_USER,
+                    pass: process.env.SMTP_PASSWORD
+                }
+                });
+
+            await transporter.sendMail({
+                from: process.env.SMTP_USER,
+                to: normalizedEmail,
+                subject: 'OTP Verification',
+                text: `Please verify your OTP`,
+                html: `<p>Your OTP is: ${newOTP}</p>`,
+                });   
+            return NextResponse.json({error:"OTP not verified"}, {status:402})
+        }
+        } catch (error) {
+            return NextResponse.json({error: "Something went wrong"}, { status: 500 })
+        }
     }
-}

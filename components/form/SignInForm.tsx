@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { useToast } from "../hooks/use-toast"
-import { cookies } from 'next/headers'
+import { useRouter } from "next/navigation"
 
 
     
@@ -31,6 +31,7 @@ const formSchema = z.object({
 export function SignInForm() {
     // 1. Define your form.
     const { toast } = useToast()
+    const router = useRouter()
     const form = useForm<z.infer<typeof formSchema>>({
       resolver: zodResolver(formSchema),
       defaultValues: {
@@ -50,56 +51,34 @@ export function SignInForm() {
         },
         body: JSON.stringify(values),
       })
-
-      const responseData = await response.json()
-
-      if (responseData.error) {
-        form.reset()
+      // get the response status code
+      console.log(response.status)
+      if (response.status == 401) {
+        // email not verified
         toast({
           variant: "destructive",
-          description: "Something Went Wrong,"
-        });
-      } else if(responseData.tempCUID){
-        toast({
-          variant: "success",
-          description: "User has not verified email yet, please verify email to login",
-        });
-        form.reset();
-        setTimeout(() => {
-          window.location.href = `/verify-email?tempCUID=${encodeURIComponent(responseData.tempCUID)}`;
-        }, 2000)
-      } else  {
-        // log the sessionToken from the res.cookies
-
-        toast({
-          variant: "success",
-          description: "Login Successful",
-        });
-        form.reset();
-
-        // Validate the sessionToken from an API call
-        const sessionResponse = await fetch('/api/auth/validateSession', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          description: "Email not verified",
         })
-
-        const sessionData = await sessionResponse.json()
-        if (sessionData.error) {
-          toast({
-            variant: "destructive",
-            description: "Something Went Wrong",
-          });
-        } else {
-          console.log(sessionData.sessionToken)
-        }
-        
-        setTimeout(() => {
-          window.location.href = `/`;
-        }, 2000)
-
-    }
+        router.push('/verify-email')
+      }
+      else if (response.status == 402) {
+        toast({
+          variant: "destructive",
+          description: "Not MFA Verified",
+        })
+        router.push('/otp')
+      } else if (response.status == 404) {
+        toast({
+          variant: "destructive",
+          description: "Email or Password are incorrect",
+        })
+      } else if(response.status == 200) {
+        toast({
+          variant: "success",
+          description: "Logged In Successfully",
+        })
+        router.push('/dashboard')
+      }
   }
 
     return (

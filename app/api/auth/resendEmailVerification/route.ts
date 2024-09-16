@@ -17,7 +17,7 @@ export async function POST(req: Request) {
         const decryptedSession = await decrypt(session.value);
 
         const sessionData = await db.session.findUnique({
-            where: { id: decryptedSession.sessionId }
+            where: { sessionId: decryptedSession.sessionId }
         })
 
         // Check if the session exists
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
         if (user.emailVerified) {
             return NextResponse.json({ error: "Email already verified" }, { status: 409 })
         }
-        await deleteSession(sessionData.id);
+        await deleteSession(sessionData.sessionId);
         const newSession = await createSession(user.id);
         
         // resend email verification
