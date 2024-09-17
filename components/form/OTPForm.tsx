@@ -49,8 +49,24 @@ export function OTPForm() {
         },
         body: JSON.stringify(values),
         })
-    const responseData = await response.json()
-    console.log(responseData)
+    if (response.status == 404) {
+        toast({
+            variant: "destructive",
+            description: "OTP is invalid, resend OTP and try gain",
+        })
+    } else if (response.status == 409) {
+        toast({
+            variant: "destructive",
+            description: "Session already verified, redirecting to dashboard",
+        })
+        router.push("/dashboard")
+    } else if (response.status == 200) {
+        toast({
+            variant: "success",
+            description: "OTP verified, redirecting to dashboard",
+        })
+        router.push("/dashboard")
+    }
 
   }
   return (

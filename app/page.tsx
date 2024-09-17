@@ -11,6 +11,11 @@ export default function Home() {
             <Link href="privacy-policy"> Privacy Policy</Link>
             <Link href="forgot-password"> Forgot Password</Link>
             <Link href="reset-password"> Reset Password</Link>
+            <Link href="verify-email"> Verify Email</Link>
+            <Link href="verified-email"> Verified Email</Link>
+            <Link href="dashboard"> Dashboard</Link>  
+            <Link href="otp"> OTP</Link>
+            
         </div>        
     </main>
   );

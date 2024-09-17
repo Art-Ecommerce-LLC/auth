@@ -1,10 +1,12 @@
+'use server';
+
 import { NextResponse, NextRequest } from "next/server";
 import db from "@/lib/db";
 import { hash } from "bcrypt";
 import * as z from "zod";
-import { headers } from 'next/headers';
-import nodemailer from 'nodemailer';
 import { createSession } from "@/lib/session";
+import { sendVerificationEmail } from "@/app/utils/mail";
+import { IP } from "@/app/utils/ip";
 
 // Define a schema for input Validation
 const userSchema = z
@@ -18,16 +20,6 @@ const userSchema = z
     confirmPassword: z.string().min(1, 'Confirm Password is required').min(8, 'Password must have than 8 characters'),
 })
 
-const IP = (): string => {
-    const FALLBACK_IP_ADDRESS = '0.0.0.0';
-    const forwardedFor = headers().get('x-forwarded-for');
-    
-    if (forwardedFor) {
-      return forwardedFor.split(',')[0] ?? FALLBACK_IP_ADDRESS;
-    }
-    
-    return headers().get('x-real-ip') ?? FALLBACK_IP_ADDRESS;
-  };
 
 export async function POST(req: NextRequest) {
     try {
@@ -74,28 +66,11 @@ export async function POST(req: NextRequest) {
             }
         })
 
-        const transporter = nodemailer.createTransport({
-            service: "gmail",
-            auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASSWORD
-            }
-            });
-        // create session token
         const session = await createSession(user.id);
-
-        // send email verification with the encrypted session token
-        const verificationUrl = `${process.env.NEXTAUTH_URL}/api/auth/verifyEmail?session=${session}`;
-
-        await transporter.sendMail({
-            from: process.env.SMTP_USER,
-            to: normalizedEmail,
-            subject: 'Email Verification',
-            text: `Please verify your email by clicking this link: ${verificationUrl}`,
-            html: `<p>Click <a href="${verificationUrl}">here</a> to verify your email.</p>`,
-            });
-
-
+        await sendVerificationEmail({
+            to: normalizedEmail, 
+            session: session,
+        });
         return NextResponse.json({success: "user Created"}, {status:200})
 
     } catch (error) {

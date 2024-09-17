@@ -1,3 +1,4 @@
+'use server';
 import { NextResponse, NextRequest } from "next/server";
 import db from "@/lib/db";
 import bcrypt from "bcrypt";
@@ -5,7 +6,7 @@ import * as z from "zod";
 import { cookies } from "next/headers";
 import { createOTPSession, createSession, deleteSession } from "@/lib/session";
 import { decrypt } from "@/lib/encrypt";
-import nodemailer from 'nodemailer';
+import { sendOTPEmail } from "@/app/utils/mail";
 // Define a schema for input Validation
 const userSchema = z
   .object({
@@ -18,7 +19,7 @@ const userSchema = z
 
 
 // POST /api/auth/validateLogin
-export async function POST(req: NextRequest, res: NextResponse) {
+export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
         const { email, password } = userSchema.parse(body);
@@ -74,26 +75,15 @@ export async function POST(req: NextRequest, res: NextResponse) {
             // Decrypt the session
             const decSession = await decrypt(encryptedSessionData);
 
+
             // since default session is not MFAverified, we will return unauthorized code for not OTP verified
             const newOTP = await createOTPSession(decSession.sessionId);
 
             // Send an email to the user with the new OTP
-            const transporter = nodemailer.createTransport({
-                service: "gmail",
-                auth: {
-                    user: process.env.SMTP_USER,
-                    pass: process.env.SMTP_PASSWORD
-                }
-                });
-
-            await transporter.sendMail({
-                from: process.env.SMTP_USER,
+            await sendOTPEmail({
                 to: normalizedEmail,
-                subject: 'OTP Verification',
-                text: `Please verify your OTP`,
-                html: `<p>Your OTP is: ${newOTP}</p>`,
-                });   
-
+                otp: newOTP
+            });
             return NextResponse.json({error:"OTP not verified"}, {status:402})
         }
 
@@ -118,22 +108,10 @@ export async function POST(req: NextRequest, res: NextResponse) {
             const newOTP = await createOTPSession(sessionData.sessionId);
 
             // Send an email to the user with the new OTP
-            const transporter = nodemailer.createTransport({
-                service: "gmail",
-                auth: {
-                    user: process.env.SMTP_USER,
-                    pass: process.env.SMTP_PASSWORD
-                }
-                });
-
-            await transporter.sendMail({
-                from: process.env.SMTP_USER,
+            await sendOTPEmail({
                 to: normalizedEmail,
-                subject: 'OTP Verification',
-                text: `Please verify your OTP`,
-                html: `<p>Your OTP is: ${newOTP}</p>`,
-                });   
-
+                otp: newOTP
+            });
 
             return NextResponse.json({error:"OTP not verified"}, {status:402})
         }
@@ -144,21 +122,10 @@ export async function POST(req: NextRequest, res: NextResponse) {
             const newOTP = await createOTPSession(sessionData.sessionId);
 
             // Send an email to the user with the new OTP
-            const transporter = nodemailer.createTransport({
-                service: "gmail",
-                auth: {
-                    user: process.env.SMTP_USER,
-                    pass: process.env.SMTP_PASSWORD
-                }
-                });
-
-            await transporter.sendMail({
-                from: process.env.SMTP_USER,
+            await sendOTPEmail({
                 to: normalizedEmail,
-                subject: 'OTP Verification',
-                text: `Please verify your OTP`,
-                html: `<p>Your OTP is: ${newOTP}</p>`,
-                });   
+                otp: newOTP
+            });
             return NextResponse.json({error:"OTP not verified"}, {status:402})
         }
         } catch (error) {

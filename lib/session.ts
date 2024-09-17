@@ -59,7 +59,7 @@ export async function deleteSession(sessionId: string) {
 }
 
 // Function to generate a unique 6-digit OTP and create a session
-export async function createOTPSession(sessionId: string) {
+export async function createOTPSession(sessionId: string): Promise<string> {
   try {
     let otp: string;
     let otpExists = true;
@@ -67,6 +67,7 @@ export async function createOTPSession(sessionId: string) {
     // Loop until we find a unique OTP
     do {
       otp = Math.floor(100000 + Math.random() * 900000).toString();
+      console.log('Generated OTP:', otp);
       const existingOTP = await db.oTP.findUnique({
         where: { otp },
       });
@@ -86,11 +87,24 @@ export async function createOTPSession(sessionId: string) {
         expiresAt: new Date(dateNow.getTime() + 5 * 60 * 1000), // 5 minutes from now
       },
     });
-
+    console.log('OTP created:', newOTP);
     // Return the generated OTP (or handle it as needed)
-    return newOTP;
+    return otp;
   } catch (error) {
     console.error("Error creating OTP session:", error);
     throw new Error("Unable to create OTP session");
   }
+}
+
+export async function deleteOTPSessions(sessionId: string) {
+    // 1. Remove all OTPs associated with the session from the database
+    try {
+        await db.oTP.deleteMany({
+            where: { sessionId: sessionId },
+        });
+        console.log('OTP sessions deleted');
+    }
+    catch (error) {
+        console.error(error);
+    }
 }

@@ -3,11 +3,11 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
 import { decrypt } from "@/lib/encrypt";
-import { deleteSession, createSession } from "@/lib/session";
+import { deleteOTPSessions, createOTPSession} from "@/lib/session";
 import { cookies } from "next/headers";
-import { sendVerificationEmail } from "@/app/utils/mail";
+import { sendOTPEmail } from "@/app/utils/mail";
 
-export async function POST(req: Request) {
+export async function POST() {
     try {
         const body = cookies();
         // Grab the session from the cookies
@@ -38,18 +38,15 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "User not found" }, { status: 404 })
         }
 
-        // Check if the email was already verified
-        if (user.emailVerified) {
-            return NextResponse.json({ error: "Email already verified" }, { status: 409 })
-        }
-        await deleteSession(sessionData.sessionId);
-        const newSession = await createSession(user.id);
-
-        // Send the email verification
-        await sendVerificationEmail({
+        await deleteOTPSessions(sessionData.sessionId);
+        const otp = await createOTPSession(sessionData.sessionId);
+        
+        // Send the OTP
+        await sendOTPEmail({
             to: user.email!,
-            session : newSession
-        })
+            otp: otp
+        });
+        
 
         return NextResponse.json({success: "success "}, {status:200})
     } catch (error) {
