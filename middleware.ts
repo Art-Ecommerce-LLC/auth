@@ -1,8 +1,10 @@
+"server only";
+
 import { NextRequest, NextResponse } from 'next/server';
 import { decrypt } from '@/lib/encrypt';
-
+import { cookies } from 'next/headers';
 // Specify protected and public routes
-const protectedRoutes = ['/dashboard', "/otp"];
+const protectedRoutes = ['/dashboard', "/otp", "/verified-email", "/reset-password", "/forgot-password", "/verify-email"];
 const publicRoutes = ['/login', '/signup', '/'];
 
 export default async function middleware(req: NextRequest) {
@@ -12,11 +14,9 @@ export default async function middleware(req: NextRequest) {
   const isProtectedRoute = protectedRoutes.includes(path);
   const isPublicRoute = publicRoutes.includes(path);
 
-  // Use NextRequest to get cookies in the Edge Runtime
-  const cookie = req.cookies.get('session')?.value;
-  // If no session cookie and accessing a protected route, redirect to /sign-in
+  const cookie = cookies().get("session")?.value;
+
   if (!cookie && isProtectedRoute) {
-    console.log("No session cookie found. Redirecting to /sign-in.");
     return NextResponse.redirect(new URL('/sign-in', req.nextUrl));
   }
 

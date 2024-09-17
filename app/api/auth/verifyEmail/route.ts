@@ -15,18 +15,17 @@ export async function GET(req: NextRequest) {
         const { searchParams } = new URL(req.url);
         const session = searchParams.get('session');
 
-        // validate the session
-        console.log({"params session": session})
-        
         const { session: sessionString} = jwtSchema.parse({ session });
         const decryptedSession = await decrypt(sessionString);
-        console.log({"decrypted session" : decryptedSession})
+
+        // check that the session isn't expired
+        if (decryptedSession.expiresAt < new Date()) {
+            return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/404`)
+        }
 
         const sessionData = await db.session.findUnique({
             where: { sessionId: decryptedSession.sessionId }
         })
-
-        console.log({"sessionData": sessionData})
 
         // Check if the session exists
         if (!sessionData) {

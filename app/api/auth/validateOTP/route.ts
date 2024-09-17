@@ -25,6 +25,12 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({error: "Session not found"}, {status:404})
         }
         const decryptedSession = await decrypt(session.value);
+
+        // Check that the session isn't expired
+        if (decryptedSession.expiresAt < new Date()) {
+            return NextResponse.json({error: "Session expired"}, {status:404})
+        }
+
         const sessionData = await db.session.findUnique({
             where: { sessionId: decryptedSession.sessionId }
         })

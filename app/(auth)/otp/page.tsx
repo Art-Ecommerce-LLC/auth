@@ -1,12 +1,18 @@
 "use client";
 
 import { OTPForm } from "@/components/form/OTPForm"
-import { Button } from "@/components/ui/button"
-import { useToast } from "@/components/hooks/use-toast"
 
-export default function OTPPage() {
-  const { toast } = useToast();
+
+export default function OTPPage({ user, session, sessionMFA }: { user: Record<string,any>, session: Record<string,any>, sessionMFA: boolean }) {
+
+  console.log(sessionMFA, user, session);
+  if (sessionMFA) {
+    router.push('/dashboard');
+  }
+
+
   async function resendEmail() {
+    const { toast } = useToast();
     // Send email to user with backend POST request
     const response = await fetch('/api/auth/resendOTP', {
         method: 'POST',

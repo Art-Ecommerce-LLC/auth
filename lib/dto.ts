@@ -3,16 +3,41 @@ import db from './db'
 import { getServerSession } from './dal'
 import { decrypt } from './encrypt'
 
-export async function getUserUser() {
+export async function getUserSession() {
+    const cookie = await getServerSession()
+    if (!cookie) {
+        return null
+    }
+    const session = await decrypt(cookie)
+    return session
+}
+
+export async function getSessionMFA() {
+    const session = await getUserSession()
+    if (!session) {
+        return null
+    }
+    const sessionData = await db.session.findUnique({
+        where: { sessionId: session.sessionId }
+    })
+    return sessionData?.mfaVerified
+}
+
+export async function getUser() {
   const cookie = await getServerSession()
 
   if (!cookie) {
     return null
   }
-
  const session = await decrypt(cookie)
 
-  // Parse the session to 
+  // Parse the session to
+  // Check the session isn't expired
+    const currentTime = new Date().getTime()
+if (session.expiresAt < currentTime) {
+    return null
+}
+
   const sessionData = await db.session.findUnique({
     where: { sessionId: session.sessionId }
   })
@@ -34,7 +59,7 @@ export async function getUserUser() {
 }
 
 export async function getUserName() {
-  const user = await getUserUser()
+  const user = await getUser()
   if (!user) {
     return null
   }
@@ -43,7 +68,7 @@ export async function getUserName() {
 
 
 export async function getUserEmail() {
-  const user = await getUserUser()
+  const user = await getUser()
   if (!user) {
     return null
   }
