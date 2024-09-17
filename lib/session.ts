@@ -20,10 +20,7 @@ export async function createSession(id: string) : Promise<string> {
     const sessionId = data.sessionId;
   
     // 2. Encrypt the session ID and expiration
-    console.log('Session ID:', sessionId);
-    console.log('Expires At:', expiresAt);
     const session = await encrypt({ sessionId, expiresAt });
-    console.log('Encrypted Session:', session);
     const isProduction = process.env.NODE_ENV === 'production';
     // 3. Store the session in cookies for optimistic auth checks
     cookies().set('session', session, {
@@ -33,10 +30,8 @@ export async function createSession(id: string) : Promise<string> {
       sameSite: 'strict',
       path: '/',
     });
-    console.log(cookies().get('session'));
     return session;
   } catch (error) {
-    console.error(error);
     throw new Error('Session creation failed');
   }
 }
@@ -51,10 +46,9 @@ export async function deleteSession(sessionId: string) {
         // 2. Remove the session from the cookies
         const cookieStore = cookies();
         cookieStore.delete('session');
-        console.log('Session deleted');
     }
     catch (error) {
-        console.error(error);
+        throw new Error("Error deleting session");
     }
 }
 
@@ -67,7 +61,6 @@ export async function createOTPSession(sessionId: string): Promise<string> {
     // Loop until we find a unique OTP
     do {
       otp = Math.floor(100000 + Math.random() * 900000).toString();
-      console.log('Generated OTP:', otp);
       const existingOTP = await db.oTP.findUnique({
         where: { otp },
       });
@@ -78,7 +71,7 @@ export async function createOTPSession(sessionId: string): Promise<string> {
     const dateNow = new Date();
 
     // Store the unique OTP in the database, with an expiration time of 5 minutes
-    const newOTP = await db.oTP.create({
+     await db.oTP.create({
       data: {
         sessionId,
         otp,
@@ -87,11 +80,9 @@ export async function createOTPSession(sessionId: string): Promise<string> {
         expiresAt: new Date(dateNow.getTime() + 5 * 60 * 1000), // 5 minutes from now
       },
     });
-    console.log('OTP created:', newOTP);
     // Return the generated OTP (or handle it as needed)
     return otp;
   } catch (error) {
-    console.error("Error creating OTP session:", error);
     throw new Error("Unable to create OTP session");
   }
 }
@@ -102,9 +93,8 @@ export async function deleteOTPSessions(sessionId: string) {
         await db.oTP.deleteMany({
             where: { sessionId: sessionId },
         });
-        console.log('OTP sessions deleted');
     }
     catch (error) {
-        console.error(error);
+        throw new Error("Error deleting OTP sessions");
     }
 }

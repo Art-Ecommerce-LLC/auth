@@ -70,6 +70,12 @@ export async function POST(req: NextRequest) {
                 mfaVerified: true
             }
         })
+
+        await db.oTP.delete({
+            where: {
+                otp: otp
+            }
+        })
         return NextResponse.json({success: "OTP is valid"}, {status:200})
         } catch (error) {
             return NextResponse.json({error: "Something went wrong"}, { status: 500 })

@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { decrypt } from '@/lib/encrypt';
 import { cookies } from 'next/headers';
 // Specify protected and public routes
-const protectedRoutes = ['/dashboard', "/otp", "/verified-email", "/reset-password", "/forgot-password", "/verify-email"];
+const protectedRoutes = ['/dashboard', "/otp", "/verify-email"];
 const publicRoutes = ['/login', '/signup', '/'];
 
 export default async function middleware(req: NextRequest) {
@@ -37,10 +37,6 @@ export default async function middleware(req: NextRequest) {
       return NextResponse.redirect(new URL('/sign-in', req.nextUrl));
     }
 
-
-    if (isPublicRoute && session.sessionId) {
-      return NextResponse.redirect(new URL('/dashboard', req.nextUrl));
-    }
 
   } catch (error) {
     if (isProtectedRoute) {

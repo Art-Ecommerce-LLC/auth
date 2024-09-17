@@ -13,6 +13,8 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { useToast } from "../hooks/use-toast"
+import { useRouter } from "next/navigation"
  
 const formSchema = z.object({
     email: z.string().email({ message: "Invalid email address" }).min(5).max(50),
@@ -22,6 +24,8 @@ const formSchema = z.object({
 
 export function ForgotPasswordForm() {
     // 1. Define your form.
+    const { toast } = useToast();
+    const router = useRouter();
     const form = useForm<z.infer<typeof formSchema>>({
       resolver: zodResolver(formSchema),
       defaultValues: {
@@ -30,10 +34,28 @@ export function ForgotPasswordForm() {
     })
    
     // 2. Define a submit handler.
-    function onSubmit(values: z.infer<typeof formSchema>) {
+    async function onSubmit(values: z.infer<typeof formSchema>) {
       // Do something with the form values.
       // ✅ This will be type-safe and validated.
-      console.log(values)
+      const response = await fetch('/api/auth/resetPassword', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values)
+        })
+      const responseData = await response.json()
+      if (responseData.error) {
+          toast({
+              variant: "destructive",
+              description: "Something Went Wrong",
+          })
+      } else {
+          toast({
+              variant: "success",
+              description: "Password reset link has been sent to your email",
+              })
+          }
     }
 
     return (

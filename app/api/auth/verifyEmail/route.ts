@@ -57,7 +57,6 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/verified-email`)
     } catch (error) {
-        console.error(error)
         return NextResponse.json({ error: "Something went wrong" }, { status: 500 })
     }
 }

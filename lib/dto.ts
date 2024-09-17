@@ -3,6 +3,18 @@ import db from './db'
 import { getServerSession } from './dal'
 import { decrypt } from './encrypt'
 
+export async function verifyDatabaseSession(session: string) {
+    const decryptedSession = await decrypt(session)
+    const sessionData = await db.session.findUnique({
+        where: { sessionId: decryptedSession.sessionId }
+    })
+
+    if (!sessionData) {
+        return false
+    }
+    return true
+}
+
 export async function getUserSession() {
     const cookie = await getServerSession()
     if (!cookie) {
