@@ -98,3 +98,19 @@ export async function deleteOTPSessions(sessionId: string) {
         throw new Error("Error deleting OTP sessions");
     }
 }
+
+export async function createResetPasswordSession(userId : string, token : string, expiresA) : Promise<string> {
+    try {
+        // 1. Create a reset password session in the databaseß
+        const data = await db.resetPassword.create({
+            data: {
+                userId: userId,ß
+                token:
+            },
+        });
+        const sessionId = data.sessionId;
+        return sessionId;
+    } catch (error) {
+        throw new Error('Reset password session creation failed');
+    }
+}

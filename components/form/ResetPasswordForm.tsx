@@ -13,7 +13,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { useRouter } from "next/router"
+import { useRouter } from "next/navigation"
 import { useToast } from "../hooks/use-toast"
  
 const formSchema = z.object({
@@ -44,7 +44,7 @@ export function ResetPasswordForm() {
     async function onSubmit(values: z.infer<typeof formSchema>) {
       // Do something with the form values.
       // submit the passwordChange request
-      const response = await fetch('/api/auth/resetPassword', {
+      const response = await fetch('/api/auth/passwordChange', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -63,11 +63,11 @@ export function ResetPasswordForm() {
         // handle the success
         toast({
           variant: "success",
-          description: "Password reset link has been sent to your email",
+          description: "Your password has been successfully changed",
         })
         router.push('/password-changed')
-      }
 
+      }
     }
 
     return (

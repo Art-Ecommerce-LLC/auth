@@ -24,8 +24,10 @@ export async function POST(req : NextRequest) {
         const { email } = userSchema.parse(body);
 
         // Check if the user exists
+        // normalize the email
+        const normalizedEmail = email.toLowerCase();
         const user = await db.user.findUnique({
-            where: { email }
+            where: { email: normalizedEmail }
         })
 
         if (!user) {

@@ -21,7 +21,7 @@ model User {
   createdAt       DateTime? @map("created_at") @default(now())
   
   sessions Session[] // One-to-many relation to the Session model
-
+  resetPasswords ResetPassword? // One-to-one relation to the ResetPassword model
   @@map("users")
 
 }
@@ -35,7 +35,7 @@ model Session {
   mfaVerified      Boolean?  @default(false) @map("mfa_verified")
 
   user             User     @relation(fields: [userId], references: [id])
-  otps             OTP[]    // One-to-many relation to the OTP model
+  otps             OTP[] 
   @@map("sessions")
 }
  
@@ -50,4 +50,16 @@ model OTP {
 
   otpSession      Session   @relation(fields: [sessionId], references: [sessionId])
   @@map("otps")
+}
+
+
+model ResetPassword {
+  id          String   @id @default(cuid()) @unique
+  userId      String   @unique// Foreign key to User table
+  token       String   @unique // Secure, hashed token
+  expiresAt   DateTime  // Token expiry
+  createdAt   DateTime @default(now())
+  used        Boolean  @default(false) // Flag to indicate if the token was used
+
+  user        User     @relation(fields: [userId], references: [id])
 }
