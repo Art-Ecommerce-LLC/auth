@@ -94,6 +94,7 @@ export async function createOTPSession(sessionId: string): Promise<string> {
     // Return the unhashed OTP (this is what you'd send to the user)
     return otp;
   } catch (error) {
+    console.log(error);
     throw new Error("Unable to create OTP session");
   }
 }
