@@ -75,6 +75,11 @@ export async function getUser() {
     // take the password off the user object
     const { password: _password, ...userWithoutPassword } = user
 
+    // Use password hash to check if the user is verified
+    if (!_password) {
+        return null
+    }
+
     return userWithoutPassword
 }
 
