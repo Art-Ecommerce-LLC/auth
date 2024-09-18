@@ -55,7 +55,7 @@ export function ForgotPasswordForm() {
               description: "Password reset link has been sent to your email",
               })
           }
-        router.push('/reset-password')
+        router.push('/password-reset-notify')
     }
 
     return (
