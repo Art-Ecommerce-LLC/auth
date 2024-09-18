@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { decrypt } from '@/lib/encrypt';
 import { z } from 'zod';
 import db from '@/lib/db';
-import { createResetPasswordSession } from '@/lib/session';
 import { cookies } from 'next/headers';
 // Define a jwt schema for input Validation
 const jwtSchema = z.object({
@@ -19,14 +18,17 @@ export async function GET(req: NextRequest) {
         const decryptedSession = await decrypt(sessionString);
         // check that the session isn't expired
 
-        if (decryptedSession.expiresAt < new Date()) {
+        // turn string decryptedsession.expiresAt into a date from string
+        const decryptedDate = new Date(decryptedSession.expiresAt);
+        // check if the session isn't expired
+        if (decryptedDate < new Date()) {
             return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/404`)
         }
 
         const sessionData = await db.resetPassword.findUnique({
             where: { 
                 sessionId: decryptedSession.sessionId,
-                userId: decryptedSession.userId
+                userId: decryptedSession.userId!
             }
         })
 
@@ -66,7 +68,7 @@ export async function GET(req: NextRequest) {
             // In example the user clicks on the link from a different device, set their cookie session
 
             cookies().set('session', sessionString, {
-                expires: decryptedSession.expiresAt,
+                expires: decryptedDate,
                 httpOnly: true, // Optional but recommended for security
                 secure: true,   // Ensure cookies are only sent over HTTPS
                 sameSite: 'strict', // Optional but helps prevent CSRF attacks

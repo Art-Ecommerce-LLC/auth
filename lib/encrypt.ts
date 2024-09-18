@@ -5,7 +5,7 @@ import * as jose from 'jose'
 const secretKey = jose.base64url.decode(process.env.ENCRYPTION_SECRET!); // Ensure it's defined
 
 // Function to encrypt a payload
-export async function encrypt(payload: Record<string, any>): Promise<string> {
+export async function encrypt(payload: Record<string, string>): Promise<string> {
   try {
 
     const jwe = await new jose.EncryptJWT(payload)
@@ -18,7 +18,7 @@ export async function encrypt(payload: Record<string, any>): Promise<string> {
 }
 
 // Function to decrypt a payload
-export async function decrypt(encryptedPayload: string): Promise<Record<string, any>> {
+export async function decrypt(encryptedPayload: string): Promise<Record<string, string>> {
   try {
     // Decrypt the compact JWE (encrypted payload) using the symmetric key
     // check if the payload is a string
@@ -30,12 +30,12 @@ export async function decrypt(encryptedPayload: string): Promise<Record<string, 
     // Optionally, you can parse the result into JSON if your original payload was JSON:
     const payload = JSON.parse(decodedPayload);
 
-    // Make sure the payload gets return in format
-    // { sessionId : string, expiresAt: Date }
     const { sessionId, expiresAt } = payload;
+    // Turn datenow into string object
+
     const decryptedPayload = {
       sessionId : sessionId,
-      expiresAt: new Date(expiresAt),
+      expiresAt: expiresAt,
     };
 
     return decryptedPayload

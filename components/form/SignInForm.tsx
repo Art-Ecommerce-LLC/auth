@@ -115,7 +115,7 @@ export function SignInForm() {
               <Button type="submit" variant="outline" className="text-black w-full mt-2">Submit</Button>
             </div>
             <div>
-              <p className="text-white text-sm">Don't Have an Account? <Link href="/sign-up" className="text-blue-500">Sign Up</Link></p> 
+              <p className="text-white text-sm">Don&apos;t Have an Account? <Link href="/sign-up" className="text-blue-500">Sign Up</Link></p> 
             </div> 
             <div>
               <p className="text-white text-sm">Forgot your Password? <Link href="/forgot-password" className="text-blue-500">Click Here</Link></p>

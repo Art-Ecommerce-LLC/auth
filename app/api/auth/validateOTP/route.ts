@@ -5,7 +5,7 @@ import db from "@/lib/db";
 import * as z from "zod";
 import { cookies } from "next/headers";
 import { decrypt } from "@/lib/encrypt";
-import bcrypt, { hash } from "bcrypt";
+import bcrypt from "bcrypt";
 // Define a sc hema for input Validation
 const userSchema = z
   .object({
@@ -28,7 +28,8 @@ export async function POST(req: NextRequest) {
         const decryptedSession = await decrypt(session.value);
 
         // Check that the session isn't expired
-        if (decryptedSession.expiresAt < new Date()) {
+        const decryptedDate = new Date(decryptedSession.expiresAt);
+        if (decryptedDate < new Date()) {
             return NextResponse.json({error: "Session expired"}, {status:404})
         }
 

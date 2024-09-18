@@ -19,7 +19,8 @@ export async function POST() {
         const decryptedSession = await decrypt(session.value);
 
         // Check if the session hasn't expired
-        if (decryptedSession.expiresAt < new Date()) {
+        const decryptedDate = new Date(decryptedSession.expiresAt);
+        if (decryptedDate < new Date()) {
             return NextResponse.json({ error: "Session expired" }, { status: 401 })
         }
 

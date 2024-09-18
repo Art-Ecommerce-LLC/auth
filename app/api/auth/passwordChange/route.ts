@@ -32,8 +32,8 @@ export async function POST(req: NextRequest) {
 
         // validate cookie session is not expired
         const session = await decrypt(cookieSession.value)
-
-        if (session.expiresAt < new Date()) {
+        const decryptedDate = new Date(session.expiresAt);
+        if (decryptedDate < new Date()) {
             return NextResponse.json({ error: 'Session expired' }, { status: 404 })
         }
 

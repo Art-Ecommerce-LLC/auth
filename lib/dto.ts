@@ -51,10 +51,11 @@ export async function getUser() {
 
   // Parse the session to
   // Check the session isn't expired
-    const currentTime = new Date().getTime()
-if (session.expiresAt < currentTime) {
-    return null
-}
+  const currentTime = new Date().getTime()
+  const expireDate = new Date(session.expiresAt).getTime()
+    if (expireDate < currentTime) {
+      return null
+    }
 
   const sessionData = await db.session.findUnique({
     where: { sessionId: session.sessionId }
@@ -72,7 +73,8 @@ if (session.expiresAt < currentTime) {
     }
     
     // take the password off the user object
-    const { password, ...userWithoutPassword } = user
+    const { password: _password, ...userWithoutPassword } = user
+
     return userWithoutPassword
 }
 

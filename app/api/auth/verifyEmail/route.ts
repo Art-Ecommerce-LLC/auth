@@ -19,7 +19,8 @@ export async function GET(req: NextRequest) {
         const decryptedSession = await decrypt(sessionString);
 
         // check that the session isn't expired
-        if (decryptedSession.expiresAt < new Date()) {
+        const decryptedDate = new Date(decryptedSession.expiresAt);
+        if (decryptedDate < new Date()) {
             return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/404`)
         }
 

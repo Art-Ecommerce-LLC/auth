@@ -17,8 +17,10 @@ export const verifySession = cache(async () => {
   }
 
   // Check the sesion hasn't expired
+    const expireDate = new Date(session.expiresAt).getTime()
+
     const currentTime = new Date().getTime()
-    if (session.expiresAt < currentTime) {
+    if (expireDate < currentTime) {
         redirect('/login')
     }   
  

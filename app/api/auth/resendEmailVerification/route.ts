@@ -7,7 +7,7 @@ import { deleteSession, createSession } from "@/lib/session";
 import { cookies } from "next/headers";
 import { sendVerificationEmail } from "@/app/utils/mail";
 
-export async function POST(req: Request) {
+export async function POST() {
     try {
         const body = cookies();
         // Grab the session from the cookies
@@ -19,7 +19,8 @@ export async function POST(req: Request) {
         const decryptedSession = await decrypt(session.value);
 
         // Check if the session hasn't expired
-        if (decryptedSession.expiresAt < new Date()) {
+        const decryptedDate = new Date(decryptedSession.expiresAt);
+        if (decryptedDate < new Date()) {
             return NextResponse.json({ error: "Session expired" }, { status: 401 })
         }
 

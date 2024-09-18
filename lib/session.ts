@@ -22,7 +22,10 @@ export async function createSession(id: string) : Promise<string> {
     const sessionId = data.sessionId;
   
     // 2. Encrypt the session ID and expiration
-    const session = await encrypt({ sessionId, expiresAt });
+    // Turn date into string
+    const expireDate = expiresAt.toISOString();
+
+    const session = await encrypt({ sessionId, expireDate });
     const isProduction = process.env.NODE_ENV === 'production';
     // 3. Store the session in cookies for optimistic auth checks
     cookies().set('session', session, {
@@ -142,7 +145,9 @@ export async function createResetPasswordSession(userId: string): Promise<string
     });
 
     // 5. Encrypt the token and expiration time
-    const session = await encrypt({ sessionId : hashedToken, expiresAt });
+    // Turn date into string
+    const expireDate = expiresAt.toISOString();
+    const session = await encrypt({ sessionId : hashedToken, expireDate });
 
     // 6. Store the session in cookies for optimistic auth checks
     const isProduction = process.env.NODE_ENV === 'production';
