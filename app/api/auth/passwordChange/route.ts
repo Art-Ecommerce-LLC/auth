@@ -37,13 +37,18 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Session expired' }, { status: 404 })
         }
 
-        // validate the session exists
-        const sessionData = await db.session.findUnique({
-            where: { sessionId: session.sessionId }
+        // validate the session exists, first 
+        const sessionData = await db.resetPassword.findUnique({
+            where: { sessionId : session.sessionId }
         })
+
 
         if (!sessionData) {
             return NextResponse.json({ error: 'Session not found' }, { status: 404 })
+        }
+
+        if (!sessionData.used) {
+            return NextResponse.json({ error: 'Session already used' }, { status: 404 })
         }
 
         // validate the user exists
@@ -67,7 +72,7 @@ export async function POST(req: NextRequest) {
         })
 
         // delete the session
-        await db.session.delete({
+        await db.resetPassword.delete({
             where: { sessionId: session.sessionId }
         })
 
@@ -76,6 +81,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ success: 'Password changed' }, { status: 200 })
     } catch (error) {
+        console.log('error', error)
         return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
     }
 }

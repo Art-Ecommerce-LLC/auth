@@ -1,19 +1,11 @@
 
-import { getUser } from "@/lib/dto"
-import { redirect } from "next/navigation";
+import { getEmailNotYetVerified } from "@/lib/dto"
 import VerifyEmailComponent from "./VerifyEmailComponent"
 
 
 export default async function VerifyEmailPage() {
 
-  const user = await getUser();
-  if (!user) {
-    redirect("/sign-in")
-  }
-
-  if (user.emailVerified) {
-    redirect('/otp');
-  }
+  await getEmailNotYetVerified()
 
   return (
     <main className="flex flex-col min-h-screen w-full items-center justify-center bg-primary text-primary-foreground">

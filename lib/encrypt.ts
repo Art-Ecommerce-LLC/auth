@@ -34,7 +34,7 @@ export async function decrypt(encryptedPayload: string): Promise<Record<string, 
     // { sessionId : string, expiresAt: Date }
     const { sessionId, expiresAt } = payload;
     const decryptedPayload = {
-      sessionId,
+      sessionId : sessionId,
       expiresAt: new Date(expiresAt),
     };
 

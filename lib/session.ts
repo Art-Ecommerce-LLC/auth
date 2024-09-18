@@ -3,6 +3,8 @@
 import { cookies } from 'next/headers';
 import db from './db';
 import { encrypt } from './encrypt';
+import { createId } from '@paralleldrive/cuid2';
+import { hash } from 'bcrypt';
 
 // The createSession function to handle session creation
 export async function createSession(id: string) : Promise<string> {
@@ -37,15 +39,16 @@ export async function createSession(id: string) : Promise<string> {
 }
 
 export async function deleteSession(sessionId: string) {
-    // 1. Remove the session from the database
+    // 1. Remove all sessions associated with the session from the database
     try {
-        await db.session.delete({
+        await db.session.deleteMany({
             where: { sessionId: sessionId },
         });
-    
-        // 2. Remove the session from the cookies
-        const cookieStore = cookies();
-        cookieStore.delete('session');
+
+        // 2. Remove all sessions associated with the session from the cookies
+
+        // Clear any cookie associate with session in the cookies
+        cookies().delete('session');
     }
     catch (error) {
         throw new Error("Error deleting session");
@@ -60,27 +63,32 @@ export async function createOTPSession(sessionId: string): Promise<string> {
 
     // Loop until we find a unique OTP
     do {
-      otp = Math.floor(100000 + Math.random() * 900000).toString();
+      otp = Math.floor(100000 + Math.random() * 900000).toString(); // Generate a 6-digit OTP
+      
+      // Hash the OTP before checking for uniqueness
+      const hashedOtp = await hash(otp, 10); // Hash the OTP with a salt round of 10
+
+      // Check if the hashed OTP already exists in the database
       const existingOTP = await db.oTP.findUnique({
-        where: { otp },
+        where: { otp: hashedOtp }, // Check against the hashed OTP
       });
-      otpExists = !!existingOTP; // If OTP exists, repeat the loop
+      otpExists = !!existingOTP; // If the OTP exists (hashed version), repeat the loop
     } while (otpExists);
 
     // Get the current time
     const dateNow = new Date();
 
-    // Store the unique OTP in the database, with an expiration time of 5 minutes
-     await db.oTP.create({
+    // Store the hashed OTP in the database, with an expiration time of 5 minutes
+    const hashedOtp = await hash(otp, 10); // Hash the OTP again before storing it
+    await db.oTP.create({
       data: {
         sessionId,
-        otp,
-        updatedAt: dateNow,
-        createdAt: dateNow,
+        otp: hashedOtp, // Store the hashed OTP
         expiresAt: new Date(dateNow.getTime() + 5 * 60 * 1000), // 5 minutes from now
       },
     });
-    // Return the generated OTP (or handle it as needed)
+
+    // Return the unhashed OTP (this is what you'd send to the user)
     return otp;
   } catch (error) {
     throw new Error("Unable to create OTP session");
@@ -99,18 +107,56 @@ export async function deleteOTPSessions(sessionId: string) {
     }
 }
 
-export async function createResetPasswordSession(userId : string, token : string, expiresA) : Promise<string> {
-    try {
-        // 1. Create a reset password session in the databaseß
-        const data = await db.resetPassword.create({
-            data: {
-                userId: userId,ß
-                token:
-            },
-        });
-        const sessionId = data.sessionId;
-        return sessionId;
-    } catch (error) {
-        throw new Error('Reset password session creation failed');
-    }
+export async function createResetPasswordSession(userId: string): Promise<string> {
+  try {
+    let token: string;
+    let hashedToken: string;
+    let tokenExists = true;
+
+    // Loop until we generate a unique hashed token
+    do {
+      // 1. Generate a cryptographically secure token
+      token = createId(); // Securely generate a unique token
+      
+      // 2. Hash the token
+      hashedToken = await hash(token, 10); // Hash the token with bcrypt
+      
+      // 3. Check if a reset password session with the hashed token already exists
+      const existingToken = await db.resetPassword.findUnique({
+        where: { sessionId: hashedToken }, // Check if the hashed token already exists in the database
+      });
+
+      tokenExists = !!existingToken; // If a matching token exists, the loop will continue
+    } while (tokenExists); // Repeat the process if the token exists
+
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // Token valid for 15 minutes
+
+    // 4. Create the reset password session in the database with the unique hashed token
+    // Check if the userId already has a reset password session in the cookies
+    await db.resetPassword.create({
+      data: {
+        userId, // Reference to the user
+        sessionId: hashedToken, // Store the hashed token
+        expiresAt, // Set expiration time
+      },
+    });
+
+    // 5. Encrypt the token and expiration time
+    const session = await encrypt({ sessionId : hashedToken, expiresAt });
+
+    // 6. Store the session in cookies for optimistic auth checks
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    cookies().set('session', session, {
+      httpOnly: true,
+      secure: isProduction,
+      expires: expiresAt,
+      sameSite: 'strict',
+    });
+
+    return session;
+  } catch (error) {
+
+    throw new Error('Reset password session creation failed');
+  }
 }

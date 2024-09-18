@@ -64,6 +64,10 @@ const config: Config = {
   				'5': 'hsl(var(--chart-5))'
   			}
   		},
+		screens: {
+			'custom-md': '829px', // Custom Breakpoint Header
+			'custom-520': '520px', // Custom Breakpoint Footer
+		  },
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',

@@ -5,7 +5,8 @@ import db from "@/lib/db";
 import * as z from "zod";
 import { cookies } from "next/headers";
 import { decrypt } from "@/lib/encrypt";
-// Define a schema for input Validation
+import bcrypt, { hash } from "bcrypt";
+// Define a sc hema for input Validation
 const userSchema = z
   .object({
     // only allowed is 6 length string
@@ -42,20 +43,20 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({error: "Session already verified"}, {status:409})
         }
         // Check if the OTP is valid
-
         const otpData = await db.oTP.findFirst({
             where: {
-                sessionId: sessionData.sessionId,
-                otp: otp
+                sessionId: sessionData.sessionId
             }
         })
 
         if (!otpData) {
             return NextResponse.json({error: "OTP is invalid"}, {status:404})
         }
+        // Compare the OTPs
+        const compareOTP = await bcrypt.compare(otp, otpData.otp);
 
-        // Check the OTP is the same as the database
-        if (otpData.otp !== otp) {
+
+        if (!compareOTP) {
             return NextResponse.json({error: "OTP is invalid"}, {status:404})
         }
         
@@ -73,7 +74,7 @@ export async function POST(req: NextRequest) {
 
         await db.oTP.delete({
             where: {
-                otp: otp
+                otp: otpData.otp
             }
         })
         return NextResponse.json({success: "OTP is valid"}, {status:200})

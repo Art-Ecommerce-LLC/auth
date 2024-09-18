@@ -2,6 +2,7 @@
 import Link from 'next/link';
 export default function Home() {
   return (
+
     <main className="flex min-h-screen w-full items-center justify-center bg-primary text-primary-foreground">
         <div className="w-full flex flex-col max-w-96 min-w-80 p-2 text-center">
             <h1> Welcome to the Homepage</h1>
