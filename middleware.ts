@@ -33,7 +33,9 @@ export default async function middleware(req: NextRequest) {
     // If session is valid and accessing a public route, redirect to /dashboard
     // Check the cookie hasn't expired
     const currentTime = new Date().getTime();
-    if (session.expiresAt < currentTime) {
+    const expireDate = new Date(session.expiresAt).getTime();
+
+    if (expireDate < currentTime) {
       return NextResponse.redirect(new URL('/sign-in', req.nextUrl));
     }
 
