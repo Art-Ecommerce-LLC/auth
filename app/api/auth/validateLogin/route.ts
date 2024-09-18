@@ -131,6 +131,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({error:"OTP not verified"}, {status:402})
         }
         } catch (error) {
+            console.log('error', error)
             return NextResponse.json({error: "Something went wrong"}, { status: 500 })
         }
     }
