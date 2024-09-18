@@ -1,4 +1,5 @@
 'use server';
+
 import { NextResponse, NextRequest } from "next/server";
 import db from "@/lib/db";
 import bcrypt from "bcrypt";
@@ -7,6 +8,7 @@ import { cookies } from "next/headers";
 import { createOTPSession, createSession, deleteSession } from "@/lib/session";
 import { decrypt } from "@/lib/encrypt";
 import { sendOTPEmail } from "@/app/utils/mail";
+
 // Define a schema for input Validation
 const userSchema = z
   .object({

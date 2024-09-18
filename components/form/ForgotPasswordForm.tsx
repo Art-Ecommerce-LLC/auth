@@ -18,7 +18,6 @@ import { useRouter } from "next/navigation"
  
 const formSchema = z.object({
     email: z.string().email({ message: "Invalid email address" }).min(5).max(50),
-
 })
 
 
@@ -56,6 +55,7 @@ export function ForgotPasswordForm() {
               description: "Password reset link has been sent to your email",
               })
           }
+        router.push('/reset-password')
     }
 
     return (

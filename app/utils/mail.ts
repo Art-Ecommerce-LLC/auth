@@ -42,7 +42,7 @@ export async function sendOTPEmail({ to, otp } : { to: string, otp: string }) {
 
 
 export async function sendResetPasswordEmail({ to, session } : { to: string, session: string }) {
-    const resetPasswordUrl = `${process.env.NEXTAUTH_URL}/reset-password?session=${session}`;
+    const resetPasswordUrl = `${process.env.NEXTAUTH_URL}/verifyPasswordReset?session=${session}`;
     const subject = 'Reset Password';
     const text = `Click this link to reset your password: ${resetPasswordUrl}`;
     const html = `<p>Click <a href="${resetPasswordUrl}">here</a> to reset your password.</p>`;

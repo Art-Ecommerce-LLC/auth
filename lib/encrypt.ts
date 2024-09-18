@@ -13,7 +13,7 @@ export async function encrypt(payload: Record<string, any>): Promise<string> {
     .encrypt(secretKey); // Encrypt with the symmetric key
     return jwe;
   } catch (error) {
-    return '';
+    throw new Error('Invalid token');
 }
 }
 
@@ -22,10 +22,6 @@ export async function decrypt(encryptedPayload: string): Promise<Record<string, 
   try {
     // Decrypt the compact JWE (encrypted payload) using the symmetric key
     // check if the payload is a string
-    if (typeof encryptedPayload !== 'string') {
-      return {};
-    }
-
     const { plaintext } = await jose.compactDecrypt(encryptedPayload, secretKey);
     
     // If the decrypted payload is a string (as it's arbitrary data), parse it as needed
@@ -33,8 +29,17 @@ export async function decrypt(encryptedPayload: string): Promise<Record<string, 
     
     // Optionally, you can parse the result into JSON if your original payload was JSON:
     const payload = JSON.parse(decodedPayload);
-    return payload;
+
+    // Make sure the payload gets return in format
+    // { sessionId : string, expiresAt: Date }
+    const { sessionId, expiresAt } = payload;
+    const decryptedPayload = {
+      sessionId,
+      expiresAt: new Date(expiresAt),
+    };
+
+    return decryptedPayload
   } catch (error) {
-    return {};
+    throw new Error('Invalid token');
   }
 }
