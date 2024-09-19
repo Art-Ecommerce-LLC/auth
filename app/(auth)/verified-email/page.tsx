@@ -3,8 +3,11 @@
 
 import { buttonVariants } from "@/components/ui/button"
 import Link from 'next/link'
+import { getEmailVerifiedStatus } from "@/lib/dto"
 
 export default async function VerifiedEmailPage() {
+
+    await getEmailVerifiedStatus()
 
     return (
         <main className="flex flex-col min-h-screen w-full items-center justify-center bg-primary text-primary-foreground">
