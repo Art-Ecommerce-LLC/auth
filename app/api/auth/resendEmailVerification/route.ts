@@ -3,16 +3,14 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
 import { decrypt } from "@/lib/encrypt";
-import { deleteSession, createSession } from "@/lib/session";
+import { deleteSession, createVerifyEmailSession } from "@/lib/session";
 import { cookies } from "next/headers";
 import { sendVerificationEmail } from "@/app/utils/mail";
 
 export async function POST() {
     try {
-        const body = cookies();
-        // Grab the session from the cookies
-        const session = body.get('session');
-
+        const session = cookies().get('session');
+        console.log(session)
         if (!session) {
             return NextResponse.json({ error: "Session not found" }, { status: 404 })
         }
@@ -20,7 +18,7 @@ export async function POST() {
 
         // Check if the session hasn't expired
         const decryptedDate = new Date(decryptedSession.expiresAt);
-        if (decryptedDate < new Date()) {
+        if (decryptedDate < new Date(Date.now())) {
             return NextResponse.json({ error: "Session expired" }, { status: 401 })
         }
 
@@ -32,7 +30,7 @@ export async function POST() {
         if (!sessionData) {
             return NextResponse.json({ error: "Session not found" }, { status: 404 })
         }
-                // Update the session with a new token and expiration
+        // Update the session with a new token and expiration
 
         // Check if the user exists
         const user = await db.user.findUnique({
@@ -49,7 +47,7 @@ export async function POST() {
             return NextResponse.json({ error: "Email already verified" }, { status: 409 })
         }
         await deleteSession(sessionData.sessionId);
-        const newSession = await createSession(user.id);
+        const newSession = await createVerifyEmailSession(user.id);
 
         // Send the email verification
         await sendVerificationEmail({

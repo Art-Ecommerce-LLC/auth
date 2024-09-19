@@ -4,9 +4,8 @@ import { NextResponse, NextRequest } from "next/server";
 import db from "@/lib/db";
 import { hash } from "bcrypt";
 import * as z from "zod";
-import { createSession } from "@/lib/session";
+import { createVerifyEmailSession } from "@/lib/session";
 import { sendVerificationEmail } from "@/app/utils/mail";
-import { IP } from "@/app/utils/ip";
 
 // Define a schema for input Validation
 const userSchema = z
@@ -61,10 +60,10 @@ export async function POST(req: NextRequest) {
             }
         })
 
-        const session = await createSession(user.id);
+        const session = await createVerifyEmailSession(user.id);
         await sendVerificationEmail({
             to: normalizedEmail, 
-            session: session,
+            session,
         });
         return NextResponse.json({success: "user Created"}, {status:200})
 

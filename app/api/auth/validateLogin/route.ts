@@ -5,7 +5,7 @@ import db from "@/lib/db";
 import bcrypt from "bcrypt";
 import * as z from "zod";
 import { cookies } from "next/headers";
-import { createOTPSession, createSession, deleteSession } from "@/lib/session";
+import { createOTPSession, createVerifyEmailSession, deleteSession } from "@/lib/session";
 import { decrypt } from "@/lib/encrypt";
 import { sendOTPEmail } from "@/app/utils/mail";
 
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
             
             if (!encryptedSession) {
                 // Create a new session for the user
-                await createSession(existingUser.id);
+                await createVerifyEmailSession(existingUser.id);
             }
 
             // Send the email verification
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
         const encryptedSession = cookies().get('session');
         if (!encryptedSession) {
             // if their isn't create a new session for the user
-            const encryptedSessionData = await createSession(existingUser.id);
+            const encryptedSessionData = await createVerifyEmailSession(existingUser.id);
             // Decrypt the session
             const decSession = await decrypt(encryptedSessionData);
 
@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
         if (!sessionData) {
             // if their isn't a database session for the cookie delete the old cookie and create a new session
             await deleteSession(decryptedSession.sessionId);
-            const session = await createSession(existingUser.id);
+            const session = await createVerifyEmailSession(existingUser.id);
             // Decrypt the session
             const newSessionDecrypt = await decrypt(session);
             const sessionData = await db.session.findUnique({
