@@ -9,7 +9,7 @@ import { hash } from 'bcrypt';
 // The createSession function to handle session creation
 export async function createSession(id: string) : Promise<string> {
   try {
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
 
     // 1. Create a session in the database
     const data = await db.session.create({

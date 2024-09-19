@@ -16,7 +16,6 @@ model User {
   email           String?   @unique
   emailVerified   Boolean?  @default(false) @map("email_verified")
   image           String?
-  ipAddress       String?   @map("ip_address") 
   updatedAt       DateTime? @map("updated_at") @updatedAt
   createdAt       DateTime? @map("created_at") @default(now())
   
@@ -33,6 +32,7 @@ model Session {
   updatedAt        DateTime @map("updated_at") @updatedAt
   expiresAt        DateTime @map("expires_at")
   mfaVerified      Boolean?  @default(false) @map("mfa_verified")
+  ipAddress        String?   @map("ip_address") 
 
   user             User     @relation(fields: [userId], references: [id])
   otps             OTP[] 
