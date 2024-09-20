@@ -57,7 +57,6 @@ export async function POST(req: NextRequest) {
                 },
             })
             const responseData = await response.json()
-            console.log('responseData', responseData)
             if (responseData.error) {
                 return NextResponse.json({error:"Something went wrong in email verification sending"}, {status:500})
             }
@@ -119,7 +118,6 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({success:"OTP verified"}, {status:200})
         }
         } catch (error) {
-            console.log('error', error)
             return NextResponse.json({error: "Something went wrong"}, { status: 500 })
         }
     }

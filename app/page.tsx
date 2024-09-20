@@ -16,7 +16,8 @@ export default function Home() {
             <Link href="verified-email"> Verified Email</Link>
             <Link href="dashboard"> Dashboard</Link>  
             <Link href="otp"> OTP</Link>
-            
+            <Link href="sign-out">Sign Out</Link>
+          
         </div>        
     </main>
   );

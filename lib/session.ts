@@ -26,7 +26,6 @@ export async function createVerifyEmailSession(id: string) : Promise<string> {
     const expireDate = expiresAt.toISOString();
     const session = await encrypt({ sessionId, expiresAt: expireDate });
     const isProduction = process.env.NODE_ENV === 'production';
-    console.log(session);
     // 3. Store the session in cookies for optimistic auth checks
     cookies().set('session', session, {
       httpOnly: true,
@@ -44,6 +43,7 @@ export async function createVerifyEmailSession(id: string) : Promise<string> {
 export async function deleteSession(sessionId: string) {
     // 1. Remove all sessions associated with the session from the database
     try {
+
         await db.session.deleteMany({
             where: { sessionId: sessionId },
         });
