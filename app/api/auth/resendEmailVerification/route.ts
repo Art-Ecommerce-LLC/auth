@@ -4,7 +4,6 @@ import { NextResponse, NextRequest } from "next/server";
 import db from "@/lib/db";
 import { decrypt } from "@/lib/encrypt";
 import { deleteSession, createVerifyEmailSession } from "@/lib/session";
-import { cookies } from "next/headers";
 import { sendVerificationEmail } from "@/app/utils/mail";
 
 export async function POST(req: NextRequest) {
