@@ -24,16 +24,16 @@ export async function createVerifyEmailSession(id: string) : Promise<string> {
     // 2. Encrypt the session ID and expiration
     // Turn date into string
     const expireDate = expiresAt.toISOString();
-
-    const session = await encrypt({ sessionId, expireDate });
+    const session = await encrypt({ sessionId, expiresAt: expireDate });
     const isProduction = process.env.NODE_ENV === 'production';
+    console.log(session);
     // 3. Store the session in cookies for optimistic auth checks
     cookies().set('session', session, {
       httpOnly: true,
       secure: isProduction,
       expires: expiresAt,
-      sameSite: 'strict',
       path: '/',
+      sameSite: 'strict',
     });
     return session;
   } catch (error) {
@@ -94,7 +94,6 @@ export async function createOTPSession(sessionId: string): Promise<string> {
     // Return the unhashed OTP (this is what you'd send to the user)
     return otp;
   } catch (error) {
-    console.log(error);
     throw new Error("Unable to create OTP session");
   }
 }

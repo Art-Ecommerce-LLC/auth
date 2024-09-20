@@ -1,20 +1,25 @@
-'use server';
+'server only';
 
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import db from "@/lib/db";
 import { decrypt } from "@/lib/encrypt";
 import { deleteSession, createVerifyEmailSession } from "@/lib/session";
 import { cookies } from "next/headers";
 import { sendVerificationEmail } from "@/app/utils/mail";
 
-export async function POST() {
+export async function POST(req: NextRequest) {
     try {
-        const session = cookies().get('session');
-        console.log(session)
+        const sessionCookie = req.headers.get('Set-Cookie');
+
+        if (!sessionCookie) {
+            return NextResponse.json({ error: "Session not found" }, { status: 404 })
+        }
+
+        const session = sessionCookie?.split('=')[1];
         if (!session) {
             return NextResponse.json({ error: "Session not found" }, { status: 404 })
         }
-        const decryptedSession = await decrypt(session.value);
+        const decryptedSession = await decrypt(session);
 
         // Check if the session hasn't expired
         const decryptedDate = new Date(decryptedSession.expiresAt);

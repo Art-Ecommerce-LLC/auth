@@ -28,6 +28,7 @@ export async function decrypt(encryptedPayload: string): Promise<Record<string, 
     const decodedPayload = new TextDecoder().decode(plaintext);
     
     // Optionally, you can parse the result into JSON if your original payload was JSON:
+    console.log('decodedPayload', decodedPayload)
     const payload = JSON.parse(decodedPayload);
 
     const { sessionId, expiresAt } = payload;
@@ -35,8 +36,10 @@ export async function decrypt(encryptedPayload: string): Promise<Record<string, 
 
     const decryptedPayload = {
       sessionId : sessionId,
-      expiresAt: expiresAt,
+      expiresAt,
     };
+
+    console.log('decryptedPayload', decryptedPayload)
 
     return decryptedPayload
   } catch (error) {
