@@ -4,6 +4,8 @@ import { cookies } from 'next/headers'
 import { decrypt } from '@/lib/encrypt'
 import db from '@/lib/db'
 import bcrypt from 'bcrypt'
+import { deleteSession } from '@/lib/session'
+
 // Define a schema for input Validation
 const userSchema = z.object({
     password: z.string().min(1, 'Password is required').min(8, 'Password must have than 8 characters'),
@@ -30,18 +32,13 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Session not found' }, { status: 404 })
         }
 
-        // validate cookie session is not expired
+        // Decrypt the session if it is valid
         const session = await decrypt(cookieSession.value)
-        const decryptedDate = new Date(session.expiresAt);
-        if (decryptedDate < new Date()) {
-            return NextResponse.json({ error: 'Session expired' }, { status: 404 })
-        }
 
         // validate the session exists, first 
         const sessionData = await db.resetPassword.findUnique({
-            where: { sessionId : session.sessionId }
+            where: { token : session }
         })
-
 
         if (!sessionData) {
             return NextResponse.json({ error: 'Session not found' }, { status: 404 })
@@ -52,11 +49,9 @@ export async function POST(req: NextRequest) {
         }
 
         // validate the user exists
-
         const user = await db.user.findUnique({
             where: { id: sessionData.userId }
         })
-
 
         if (!user) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 })
@@ -72,12 +67,10 @@ export async function POST(req: NextRequest) {
         })
 
         // delete the session
-        await db.resetPassword.delete({
-            where: { sessionId: session.sessionId }
+        await deleteSession({
+            userId: user.id,
+            deleteAllSessions: true
         })
-
-        // delete the cookie
-        cookies().delete('session')
 
         return NextResponse.json({ success: 'Password changed' }, { status: 200 })
     } catch (error) {

@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { decrypt } from '@/lib/encrypt';
 import { z } from 'zod';
 import db from '@/lib/db';
-import { cookies } from 'next/headers';
-// Define a jwt schema for input Validation
+
 const jwtSchema = z.object({
     session: z.string().min(1),
 })
@@ -14,21 +13,18 @@ export async function GET(req: NextRequest) {
         const { searchParams } = new URL(req.url);
         const session = searchParams.get('session');
 
-        const { session: sessionString} = jwtSchema.parse({ session });
-        const decryptedSession = await decrypt(sessionString);
-        // check that the session isn't expired
+        // Put session through jwt schema
+        const { session: sessionJWE } = jwtSchema.parse({ session });
 
-        // turn string decryptedsession.expiresAt into a date from string
-        const decryptedDate = new Date(decryptedSession.expiresAt);
-        // check if the session isn't expired
-        if (decryptedDate < new Date()) {
+        if (!sessionJWE) {
             return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/404`)
         }
 
+        const token = await decrypt(sessionJWE);
+    
         const sessionData = await db.resetPassword.findUnique({
             where: { 
-                sessionId: decryptedSession.sessionId,
-                userId: decryptedSession.userId!
+                token
             }
         })
 
@@ -37,7 +33,6 @@ export async function GET(req: NextRequest) {
         if (!sessionData) {
             return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/404`)
         }
-
 
         // Check if the resetPassword was used already
         if (sessionData.used) {
@@ -56,26 +51,11 @@ export async function GET(req: NextRequest) {
 
         // Log the link as used
         await db.resetPassword.update({
-            where: { sessionId: decryptedSession.sessionId },
-            data: { used: true }
+            where: { id: sessionData.id },
+            data: {
+                used: true
+            }
         })
-
-        // Check if their is already a session 
-        const cookieSession = cookies().get('session')
-
-        if (!cookieSession) {
-            // Since their is no cookie sesion
-            // In example the user clicks on the link from a different device, set their cookie session
-
-            cookies().set('session', sessionString, {
-                expires: decryptedDate,
-                httpOnly: true, // Optional but recommended for security
-                secure: true,   // Ensure cookies are only sent over HTTPS
-                sameSite: 'strict', // Optional but helps prevent CSRF attacks
-                path: '/',     // Optional, limits the scope of the cookie
-        });
-
-        } 
 
         return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/reset-password`)
 

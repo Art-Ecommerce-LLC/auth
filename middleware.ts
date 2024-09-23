@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { decrypt } from '@/lib/encrypt';
 import { cookies } from 'next/headers';
 // Specify protected and public routes
-const protectedRoutes = ['/dashboard', "/otp", "/verify-email"];
+const protectedRoutes = ['/dashboard'];
 const publicRoutes = ['/login', '/signup', '/'];
 
 export default async function middleware(req: NextRequest) {

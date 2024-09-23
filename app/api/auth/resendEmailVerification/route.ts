@@ -1,42 +1,31 @@
 'server only';
 
-import { NextResponse, NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import db from "@/lib/db";
 import { decrypt } from "@/lib/encrypt";
-import { deleteSession, createVerifyEmailSession } from "@/lib/session";
-import { sendVerificationEmail } from "@/app/utils/mail";
+import { cookies } from "next/headers";
+import { sendEmail } from "@/app/utils/mail";
 
-export async function POST(req: NextRequest) {
+export async function POST() {
     try {
-        const sessionCookie = req.headers.get('Set-Cookie');
+        const session = cookies().get('verifyEmail');
 
-        if (!sessionCookie) {
-            return NextResponse.json({ error: "Session not found" }, { status: 404 })
-        }
-
-        const session = sessionCookie?.split('=')[1];
         if (!session) {
             return NextResponse.json({ error: "Session not found" }, { status: 404 })
         }
-        const decryptedSession = await decrypt(session);
 
-        // Check if the session hasn't expired
-        const decryptedDate = new Date(decryptedSession.expiresAt);
-        if (decryptedDate < new Date(Date.now())) {
-            return NextResponse.json({ error: "Session expired" }, { status: 401 })
-        }
+        // Validate the session in decrypt
+        const decryptedSession = await decrypt(session.value);
 
-        const sessionData = await db.session.findUnique({
-            where: { sessionId: decryptedSession.sessionId }
+        const sessionData = await db.emailVerification.findUnique({
+            where: { token: decryptedSession }
         })
 
         // Check if the session exists
         if (!sessionData) {
             return NextResponse.json({ error: "Session not found" }, { status: 404 })
         }
-        // Update the session with a new token and expiration
 
-        // Check if the user exists
         const user = await db.user.findUnique({
             where: { id: sessionData.userId }
         })
@@ -50,13 +39,12 @@ export async function POST(req: NextRequest) {
         if (user.emailVerified) {
             return NextResponse.json({ error: "Email already verified" }, { status: 409 })
         }
-        await deleteSession(sessionData.sessionId);
-        const newSession = await createVerifyEmailSession(user.id);
 
         // Send the email verification
-        await sendVerificationEmail({
-            to: user.email!,
-            session : newSession
+        await sendEmail({
+            to: user.email,
+            type: "verifyEmail",
+            session: session.value
         })
 
         return NextResponse.json({success: "success "}, {status:200})

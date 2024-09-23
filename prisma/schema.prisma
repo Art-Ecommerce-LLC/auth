@@ -10,57 +10,83 @@ datasource db {
 }
  
 model User {
-  id              String    @id @default(cuid()) @unique
-  username        String?   @unique
-  password        String?
-  email           String?   @unique
-  emailVerified   Boolean?  @default(false) @map("email_verified")
+  id              String   @id @default(cuid()) @unique
+  username        String   @unique
+  password        String
+  email           String   @unique
+  emailVerified   Boolean  @default(false) @map("email_verified")
   image           String?
-  updatedAt       DateTime? @map("updated_at") @updatedAt
-  createdAt       DateTime? @map("created_at") @default(now())
+  updatedAt       DateTime @map("updated_at") @updatedAt
+  createdAt       DateTime @map("created_at") @default(now())
+  role            String   @default("USER")
   
-  sessions Session[] // One-to-many relation to the Session model
-  resetPasswords ResetPassword[] // One-to-many relation to the ResetPassword model
+  sessions Session[] 
+  resetPasswords ResetPassword?
+  emailVerifications EmailVerification?
   @@map("users")
 
 }
 
 model Session {
-  sessionId        String   @map("session_id") @id @default(cuid()) @unique
-  userId           String   @map("user_id")
-  createdAt        DateTime @map("created_at") @default(now())
-  updatedAt        DateTime @map("updated_at") @updatedAt
-  expiresAt        DateTime @map("expires_at")
-  mfaVerified      Boolean?  @default(false) @map("mfa_verified")
-  ipAddress        String?   @map("ip_address") 
+  id               String    @id @default(cuid()) @unique
+  token            String    @map("token") @unique
+  userId           String    @map("user_id")
+  createdAt        DateTime  @map("created_at") @default(now())
+  updatedAt        DateTime  @map("updated_at") @updatedAt
+  expiresAt        DateTime  @map("expires_at")
+  mfaVerified      Boolean   @default(false) @map("mfa_verified")
+  ipAddress        String    @map("ip_address") 
 
-  user             User     @relation(fields: [userId], references: [id])
-  otps             OTP[] 
+  user             User      @relation(fields: [userId], references: [id])
+  otps             OTP? 
+
+  @@unique([token, userId])
   @@map("sessions")
 }
- 
+  
 
 model OTP {
   id              String    @id @default(cuid()) @unique
-  sessionId       String    @map("session_id") @unique
+  token           String    @map("token") @unique
+  userId          String    @map("user_id") @unique
   otp             String    @unique
+  used            Boolean   @default(false)
   expiresAt       DateTime  @map("expires_at")
   createdAt       DateTime  @map("created_at") @default(now())
   updatedAt       DateTime  @map("updated_at") @updatedAt
 
-  otpSession      Session   @relation(fields: [sessionId], references: [sessionId])
+
+  session         Session  @relation(fields: [token, userId], references: [token, userId])
+  @@unique([token, userId])
+  
   @@map("otps")
 }
 
 
 model ResetPassword {
   id          String   @id @default(cuid()) @unique
-  userId      String   @map("user_id")
-  sessionId   String   @unique @map("session_id") // Secure, hashed token
-  expiresAt   DateTime  // Token expiry
+  userId      String   @map("user_id") @unique
+  token       String   @unique
+  expiresAt   DateTime  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  used        Boolean  @default(false) // Flag to indicate if the token was used
+  used        Boolean  @default(false)
 
   user        User     @relation(fields: [userId], references: [id])
+  
+  @@map("reset_passwords")
+}
+
+model EmailVerification {
+  id          String   @id @default(cuid()) @unique
+  userId      String   @map("user_id") @unique
+  token       String   @unique
+  expiresAt   DateTime 
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  used        Boolean  @default(false) 
+
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@map("email_verifications")
 }

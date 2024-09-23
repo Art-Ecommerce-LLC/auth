@@ -1,11 +1,11 @@
 
-import { getEmailNotYetVerified } from "@/lib/dto"
 import VerifyEmailComponent from "./VerifyEmailComponent"
+import { verifyEmailSession } from "@/lib/dto"
 
 
 export default async function VerifyEmailPage() {
 
-  await getEmailNotYetVerified()
+  // await verifyEmailSession();
 
   return (
     <main className="flex flex-col min-h-screen w-full items-center justify-center bg-primary text-primary-foreground">

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { deleteSession } from "@/lib/session";
 import { cookies } from "next/headers";
 import { decrypt } from "@/lib/encrypt";
+import db from "@/lib/db";
 
 export async function POST() {
     // Delete session cook
@@ -13,8 +14,21 @@ export async function POST() {
         // Decrypt the session
         const decryptedSession = await decrypt(session.value);
 
+        // get the session data
+        const sessionData = await db.session.findUnique({
+            where: { sessionId: decryptedSession }
+        });
+        
+        // Check if the session exists
+        if (!sessionData) {
+            return NextResponse.json({ error: "Session not found" }, { status: 404 });
+        }
         // Delete the session
-        await deleteSession(decryptedSession.sessionId);
+        await deleteSession({
+            userId: sessionData.userId,
+            deleteAllSessions: true
+        });
+
 
         return NextResponse.json({ success: "Session deleted" }, { status: 200 });
     } catch (error) {

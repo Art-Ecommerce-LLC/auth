@@ -4,8 +4,8 @@ import { NextResponse, NextRequest } from "next/server";
 import db from "@/lib/db";
 import { hash } from "bcrypt";
 import * as z from "zod";
-import { createVerifyEmailSession } from "@/lib/session";
-import { sendVerificationEmail } from "@/app/utils/mail";
+import { manageSession } from "@/lib/session";
+import { sendEmail } from "@/app/utils/mail";
 
 // Define a schema for input Validation
 const userSchema = z
@@ -21,7 +21,6 @@ const userSchema = z
     message: "Passwords don't match",
     path: ["confirmPassword"], // This will set the error on the confirmPassword field
   });
-
 
 export async function POST(req: NextRequest) {
     try {
@@ -42,15 +41,6 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({error:"User with this email already exists"}, {status:409})
         }
 
-        // Check if username already exists
-        const existingUsername = await db.user.findUnique({
-            where: {username:normalizedUsername}
-        })
-
-        if (existingUsername) {
-            return NextResponse.json({error:"User with this username already exists"}, {status:409})
-        }
-
         const hashedPassword = await hash(password, 10);
         const user = await db.user.create({
             data: {
@@ -60,12 +50,19 @@ export async function POST(req: NextRequest) {
             }
         })
 
-        const session = await createVerifyEmailSession(user.id);
-        await sendVerificationEmail({
-            to: normalizedEmail, 
-            session,
+        const session = await manageSession({
+              userId: user.id, 
+              sessionType: 'verifyEmail', 
+              encryptSession: true
         });
-        return NextResponse.json({success: "user Created"}, {status:200})
+
+        await sendEmail({
+            to: user.email,
+            type: 'verifyEmail',
+            session: session.token
+        })
+        
+        return NextResponse.json({success: "User Created"}, {status:200})
 
     } catch (error) {
         return NextResponse.json({error:"Something Went Wrong"}, {status:500})

@@ -8,24 +8,20 @@ const jwtSchema = z.object({
     session: z.string().min(1),
 })
 
-
 export async function GET(req: NextRequest) {
     try {
         // Grab the encrypted session data from the sessionId url parameter
         const { searchParams } = new URL(req.url);
         const session = searchParams.get('session');
 
-        const { session: sessionString} = jwtSchema.parse({ session });
-        const decryptedSession = await decrypt(sessionString);
-
-        // check that the session isn't expired
-        const decryptedDate = new Date(decryptedSession.expiresAt);
-        if (decryptedDate < new Date()) {
+        if (!session) {
             return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/404`)
         }
 
+        const decryptedSession = await decrypt(session);
+
         const sessionData = await db.session.findUnique({
-            where: { sessionId: decryptedSession.sessionId }
+            where: { sessionId: decryptedSession}
         })
 
         // Check if the session exists

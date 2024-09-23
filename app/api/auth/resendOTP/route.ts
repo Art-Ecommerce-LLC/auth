@@ -3,38 +3,28 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
 import { decrypt } from "@/lib/encrypt";
-import { deleteOTPSessions, createOTPSession} from "@/lib/session";
 import { cookies } from "next/headers";
-import { sendOTPEmail } from "@/app/utils/mail";
+import { sendEmail } from "@/app/utils/mail";
 
 export async function POST() {
     try {
-        const body = cookies();
-        // Grab the session from the cookies
-        const session = body.get('session');
+        const session = cookies().get('session');
 
         if (!session) {
             return NextResponse.json({ error: "Session not found" }, { status: 404 })
         }
+
+        // Decrypt the session and validate it
         const decryptedSession = await decrypt(session.value);
 
-        // Check if the session hasn't expired
-        const decryptedDate = new Date(decryptedSession.expiresAt);
-        if (decryptedDate < new Date()) {
-            return NextResponse.json({ error: "Session expired" }, { status: 401 })
-        }
-
         const sessionData = await db.session.findUnique({
-            where: { sessionId: decryptedSession.sessionId }
+            where: { sessionId: decryptedSession }
         })
 
-        // Check if the session exists
         if (!sessionData) {
             return NextResponse.json({ error: "Session not found" }, { status: 404 })
         }
-                // Update the session with a new token and expiration
 
-        // Check if the user exists
         const user = await db.user.findUnique({
             where: { id: sessionData.userId }
         })
@@ -44,16 +34,12 @@ export async function POST() {
             return NextResponse.json({ error: "User not found" }, { status: 404 })
         }
 
-        await deleteOTPSessions(sessionData.sessionId);
-        const otp = await createOTPSession(sessionData.sessionId);
-        
-        // Send the OTP
-        await sendOTPEmail({
-            to: user.email!,
-            otp: otp
+        await sendEmail({
+            to: user.email,
+            type: "otp",
+            session: session.value
         });
-        
-
+    
         return NextResponse.json({success: "success "}, {status:200})
     } catch (error) {
         return NextResponse.json({ error: "Something went wrong" }, { status: 500 })

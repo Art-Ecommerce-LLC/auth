@@ -1,19 +1,8 @@
 
-import { getUser, getSessionMFA } from "@/lib/dto"
 import OTPComponent from "./OTPComponent"
 import { redirect } from "next/navigation";
 
 export default async function OTPPage() {
-
-  const user = await getUser();
-  if (!user) {
-    redirect("/sign-in")
-  }
-
-  const sessionMFA = await getSessionMFA();
-  if (sessionMFA) {
-    redirect('/dashboard');
-  }
 
   return (
     <main className="flex flex-col min-h-screen w-full items-center justify-center bg-primary text-primary-foreground">

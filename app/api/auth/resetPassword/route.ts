@@ -3,10 +3,8 @@
 import { NextResponse, NextRequest } from "next/server";
 import db from "@/lib/db";
 import * as z from "zod";
-import { sendResetPasswordEmail } from "@/app/utils/mail";
-import { createResetPasswordSession } from "@/lib/session";
-import { deleteSession } from "@/lib/session";
-
+import { manageSession } from "@/lib/session";
+import { sendEmail } from "@/app/utils/mail";
 
 // Define a schema for input Validation
 const userSchema = z
@@ -32,15 +30,17 @@ export async function POST(req : NextRequest) {
             return NextResponse.json({error: "User not found"}, {status:404})
         }
 
-        // Delete any existing user sessions
-        await deleteSession(user.id);
-
-        // Create a ResetPassword session
-        const newSession = await createResetPasswordSession(user.id);
+        // Create a new session
+        const session = await manageSession({
+            userId: user.id,
+            sessionType: 'resetPassword',
+            encryptSession: true
+        });
         // Send the email
-        await sendResetPasswordEmail({
-            to: user.email!,
-            session: newSession
+        await sendEmail({
+            to: user.email,
+            type: "resetPassword",
+            session: session.token,
         });
 
         return NextResponse.json({success: "Email sent"}, {status:200})

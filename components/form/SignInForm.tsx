@@ -51,9 +51,8 @@ export function SignInForm() {
         },
         body: JSON.stringify(values),
       })
-      // get the response status code
-      console.log(response.status)
-      if (response.status == 401) {
+
+      if (response.status == 201) {
         // email not verified
         toast({
           variant: "destructive",
