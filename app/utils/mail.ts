@@ -44,7 +44,7 @@ export async function sendEmail({
 
     switch (type) {
         case 'verifyEmail':
-            const verificationUrl = `${process.env.NEXTAUTH_URL}/api/auth/verifyEmail?session=${session}`;
+            const verificationUrl = `${process.env.NEXTAUTH_URL}/api/auth/verifyEmail?verifyEmail=${session}`;
             subject = 'Email Verification';
             text = `Please verify your email by clicking this link: ${verificationUrl}`;
             html = `<p>Click <a href="${verificationUrl}">here</a> to verify your email.</p>`;
@@ -57,7 +57,7 @@ export async function sendEmail({
             break;
 
         case 'resetPassword':
-            const resetPasswordUrl = `${process.env.NEXTAUTH_URL}/api/auth/verifyPasswordReset?session=${session}`;
+            const resetPasswordUrl = `${process.env.NEXTAUTH_URL}/api/auth/verifyPasswordReset?verifyPassword=${session}`;
             subject = 'Reset Password';
             text = `Click this link to reset your password: ${resetPasswordUrl}`;
             html = `<p>Click <a href="${resetPasswordUrl}">here</a> to reset your password.</p>`;

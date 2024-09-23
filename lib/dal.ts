@@ -4,48 +4,46 @@ import { cookies } from 'next/headers'
 import { decrypt } from './encrypt'
 import { cache } from 'react'
 import db from './db'
-import { hash } from 'bcrypt' 
 
 export const validateSession = cache(async (sessionType: string) => {
   // Get session from cookies
-  console.log('sessionType: '+sessionType)
-  const sessionCookie = cookies().get(sessionType);
-  console.log('scookie: '+sessionCookie)
-  if (!sessionCookie) {
-      return false; // No session found in cookies
+
+  const session = cookies().get(sessionType);
+
+  if (!session) {
+      return { user: null, session: null }; // No session found in cookies
   }
 
-  const decryptedToken = await decrypt(sessionCookie.value);
+  const sessionCookie = await decrypt(session.value);
 
-  if (!decryptedToken) { 
-      return false; // Session cookie could not be decrypted
+  if (!sessionCookie) { 
+      return { user: null, session: null }; // Session cookie could not be decrypted
   }
 
   // Query the session from the database
   let sessionRecord;
-  let token;
-  token = await hash(decryptedToken, 10);
   try {
       // Query the appropriate session table based on the session type
       switch (sessionType) {
           case 'session':
-              sessionRecord = await db.session.findUnique({
-                  where: { token },
+              sessionRecord = await db.session.findMany({
+                  where: { userId: sessionCookie.userId },
               });
               break;
           case 'verifyEmail':
               sessionRecord = await db.emailVerification.findUnique({
-                  where: { token },
+                  where: { userId: sessionCookie.userId },
               });
+
               break;
           case 'resetPassword':
               sessionRecord = await db.resetPassword.findUnique({
-                  where: { token },
+                  where: { userId: sessionCookie.userId },
               });
               break;
           case 'otp':
               sessionRecord = await db.oTP.findUnique({
-                  where: { token },
+                  where: { userId: sessionCookie.userId },
               });
               break;
           default:
@@ -54,19 +52,25 @@ export const validateSession = cache(async (sessionType: string) => {
 
       // If no session record is found, return false
       if (!sessionRecord) {
-          return false;
+          return { user: null, session: null };
       }
 
-      // Check if the session has expired in the database as well
-      if (new Date() > sessionRecord.expiresAt) {
-          return false;
-      }
   } catch (error) {
-      console.error(`Error querying the ${sessionType} session from database`, error);
-      return false;
+      return { user: null, session: null };
   }
 
-  // Return the session record if everything is valid
-  return sessionRecord;
+  // Get user without the password
+    const user = await db.user.findUnique({
+        where: { id: sessionCookie.userId },
+        // select: { password: false },
+    });
+
+    if (!user) {
+        return { user: null, session: null };
+    }
+
+    const { password: _, ...userWithoutPassword } = user;
+
+  return { user: userWithoutPassword, session: sessionRecord };
 });
 

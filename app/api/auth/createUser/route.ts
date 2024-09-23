@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
               sessionType: 'verifyEmail', 
               encryptSession: true
         });
-
+        console.log(session);
         await sendEmail({
             to: user.email,
             type: 'verifyEmail',

@@ -21,7 +21,7 @@ const getExpirationTime = (sessionType: string): Date => {
 };
 
 // Helper to create session data
-const createSessionData = async (sessionType: string, userId: string): Promise<{ token: string; expiresAt: Date }> => {
+const createSessionData = async (sessionType: string, userId: string): Promise<{ token: string; expiresAt: Date}> => {
   const expiresAt = getExpirationTime(sessionType);
   let token: string;
   let hashedToken: string | null = null;
@@ -45,7 +45,9 @@ const createSessionData = async (sessionType: string, userId: string): Promise<{
     case 'verifyEmail':
     case 'resetPassword':
       token = createId();
+      console.log(token);
       hashedToken = await hash(token, 10);
+      console.log(hashedToken);
       if (sessionType === 'verifyEmail') {
         await db.emailVerification.create({
           data: {
@@ -82,7 +84,7 @@ const createSessionData = async (sessionType: string, userId: string): Promise<{
       throw new Error('Unsupported session type');
   }
 
-  return { token, expiresAt };
+  return { token, expiresAt};
 };
 
 // Unified function for creating different sessions
@@ -96,15 +98,18 @@ export async function manageSession({
   encryptSession?: boolean; // Optional
 }) {
   try {
-    const { token, expiresAt } = await createSessionData(sessionType, userId);
+    const { token, expiresAt} = await createSessionData(sessionType, userId);
 
     // Encrypt the token or sessionId if encryptSession is true
-    const finalToken = encryptSession ? await encrypt({ token, expiresAt }) : token;
-
-    // Create cookies
+    const finalToken = await encrypt({ token, expiresAt, userId });
     createCookie(sessionType, finalToken, expiresAt);
 
-    return { token: finalToken, expiresAt };
+    if (!encryptSession) {
+      return { token, expiresAt, userId };
+    } else {
+      return { token: finalToken, expiresAt, userId };
+    }
+
   } catch (error) {
     throw new Error(`${sessionType} creation failed: ${error}`);
   }

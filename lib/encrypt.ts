@@ -19,20 +19,20 @@ export async function encrypt(payload: Record<string, string | Date>): Promise<s
 }
 
 // Function to decrypt a payload
-export async function decrypt(encryptedPayload: string): Promise<string> {
+export async function decrypt(encryptedPayload: string): Promise<Record<string,string>> {
   try {
 
     const { plaintext } = await jose.compactDecrypt(encryptedPayload, secretKey);
     const decodedPayload = new TextDecoder().decode(plaintext);
 
     const payload = JSON.parse(decodedPayload);
-    const { token, expiresAt } = payload;
+    const { token, expiresAt, userId }: { token: string; expiresAt: string; userId: string } = payload;
 
     if (new Date(expiresAt) < new Date(Date.now())){
       throw new Error('Token expired');
     }
 
-    return token;
+    return {token, userId};
 
   } catch (error) {
     throw new Error('Invalid token');

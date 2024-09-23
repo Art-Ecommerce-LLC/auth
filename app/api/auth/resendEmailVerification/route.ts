@@ -5,25 +5,31 @@ import db from "@/lib/db";
 import { decrypt } from "@/lib/encrypt";
 import { cookies } from "next/headers";
 import { sendEmail } from "@/app/utils/mail";
+import { compare } from "bcrypt";
+import { deleteSession, manageSession } from "@/lib/session";
 
 export async function POST() {
     try {
         const session = cookies().get('verifyEmail');
-
+ 
         if (!session) {
             return NextResponse.json({ error: "Session not found" }, { status: 404 })
         }
 
-        // Validate the session in decrypt
-        const decryptedSession = await decrypt(session.value);
-
+        const sessionCookie = await decrypt(session.value);
         const sessionData = await db.emailVerification.findUnique({
-            where: { token: decryptedSession }
+            where: { userId : sessionCookie.userId }
         })
 
-        // Check if the session exists
         if (!sessionData) {
             return NextResponse.json({ error: "Session not found" }, { status: 404 })
+        }
+
+        // Compare the session token
+        const isValid = await compare(sessionCookie.token, sessionData.token)
+
+        if (!isValid) {
+            return NextResponse.json({ error: "Invalid session" }, { status: 401 })
         }
 
         const user = await db.user.findUnique({
@@ -41,10 +47,19 @@ export async function POST() {
         }
 
         // Send the email verification
+        // Delete the previous session and make a new one
+
+        await deleteSession({ userId: user.id, cookieNames: ['verifyEmail'] })
+        const newSession = await manageSession({ userId: user.id, sessionType: 'verifyEmail', encryptSession: true })
+
+        if (!newSession) {
+            return NextResponse.json({ error: "Session creation failed" }, { status: 500 })
+        }
+
         await sendEmail({
             to: user.email,
             type: "verifyEmail",
-            session: session.value
+            session: newSession.token
         })
 
         return NextResponse.json({success: "success "}, {status:200})

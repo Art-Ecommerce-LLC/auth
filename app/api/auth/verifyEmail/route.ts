@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import db from "@/lib/db";
 import * as z from "zod";
 import { decrypt } from "@/lib/encrypt";
+import { compare } from "bcrypt";
 
 // Define a jwt schema for input Validation
 const jwtSchema = z.object({
@@ -12,24 +13,31 @@ export async function GET(req: NextRequest) {
     try {
         // Grab the encrypted session data from the sessionId url parameter
         const { searchParams } = new URL(req.url);
-        const session = searchParams.get('session');
+        const session = searchParams.get('verifyEmail');
 
         if (!session) {
             return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/404`)
         }
 
-        const decryptedSession = await decrypt(session);
-
-        const sessionData = await db.session.findUnique({
-            where: { sessionId: decryptedSession}
+        const sessionCookie = await decrypt(session);
+        const sessionData = await db.emailVerification.findUnique({
+            where: { userId: sessionCookie.userId}
         })
 
-        // Check if the session exists
+        
         if (!sessionData) {
             return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/404`)
         }
 
-        // Check if the user exists
+
+        // Compare the token to the token in the databse with bcrypt
+        const isTokenValid = await compare(sessionCookie.token, sessionData.token);
+
+        if (!isTokenValid) {
+            console.log('Token is invalid')
+            return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/404`)
+        }
+
         const user = await db.user.findUnique({
             where: { id: sessionData.userId }
         })
@@ -50,6 +58,11 @@ export async function GET(req: NextRequest) {
             data: {
                 emailVerified: true
             }
+        })
+
+        // Delete the session
+        await db.emailVerification.delete({
+            where: { userId: user.id }
         })
 
         return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/verified-email`)
