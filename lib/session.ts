@@ -133,18 +133,23 @@ export async function manageSession({
   encryptSession?: boolean; // Optional
 }) {
   try {
-    const { token, expiresAt} = await createSessionData(sessionType, userId);
-
-    // Encrypt the token or sessionId if encryptSession is true
-    const finalToken = await encrypt({ token, expiresAt, userId });
-    createCookie(sessionType, finalToken, expiresAt);
-
-    if (!encryptSession) {
-      return { token, expiresAt, userId };
-    } else {
-      return { token: finalToken, expiresAt, userId };
-    }
-
+    // Create session data make switch case for different session types and return values
+    let sessionJWT;
+    switch (sessionType) {
+      case 'session':
+      case 'verifyEmail':
+      case 'resetPassword':
+        const { token, expiresAt} = await createSessionData(sessionType, userId);
+        sessionJWT = { token, expiresAt, userId };
+        const finalToken = await encrypt({ token, expiresAt, userId });
+        createCookie(sessionType, finalToken, expiresAt);
+        return { token: finalToken, expiresAt, userId };
+      case 'otp':
+        const { token, expiresAt, otp } = await createSessionData(sessionType, userId);
+        sessionJWT = { token, expiresAt, userId, otp };
+        const finalOtp = await encrypt({ token, expiresAt, userId, otp });
+        createCookie(sessionType, finalOtp, expiresAt);
+        return { token: finalOtp, expiresAt, userId, otp };
   } catch (error) {
     throw new Error(`${sessionType} creation failed: ${error}`);
   }
