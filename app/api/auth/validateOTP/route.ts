@@ -5,7 +5,7 @@ import db from "@/lib/db";
 import * as z from "zod";
 import { cookies } from "next/headers";
 import { decrypt } from "@/lib/encrypt";
-import bcrypt from "bcrypt";
+import { compare } from "bcrypt";
 // Define a sc hema for input Validation
 const userSchema = z
   .object({
@@ -21,63 +21,70 @@ export async function POST(req: NextRequest) {
         const { otp } = userSchema.parse(body);
 
         // Validate the OTP against the session and then the OTP table
-        const session = cookies().get('session');
-        if (!session) {
+        const otpSession = cookies().get('otp');
+        if (!otpSession) {
             return NextResponse.json({error: "Session not found"}, {status:404})
         }
-        const decryptedSession = await decrypt(session.value);
+        const otpSessionCookie = await decrypt(otpSession.value);
 
-        // Check that the session isn't expired
-        const decryptedDate = new Date(decryptedSession.expiresAt);
-        if (decryptedDate < new Date()) {
-            return NextResponse.json({error: "Session expired"}, {status:404})
-        }
-
-        const sessionData = await db.session.findUnique({
-            where: { sessionId: decryptedSession.sessionId }
+        const otpSessionData = await db.oTP.findUnique({
+            where: {userId: otpSessionCookie.userId}
         })
-        if (!sessionData) {
+        if (!otpSessionData) {
             return NextResponse.json({error: "Session not found"}, {status:404})
         }
-        // Check that the session isnn't already OTP verified
-        if (sessionData.mfaVerified) {
-            return NextResponse.json({error: "Session already verified"}, {status:409})
+
+        // Compare tokens
+        const isValidToken = await compare(otpSessionCookie.token, otpSessionData.token);
+        if (!isValidToken) {
+            return NextResponse.json({error: "Invalid session"}, {status:401})
         }
-        // Check if the OTP is valid
-        const otpData = await db.oTP.findFirst({
-            where: {
-                sessionId: sessionData.sessionId
-            }
-        })
 
-        if (!otpData) {
-            return NextResponse.json({error: "OTP is invalid"}, {status:404})
-        }
-        // Compare the OTPs
-        const compareOTP = await bcrypt.compare(otp, otpData.otp);
-
-
-        if (!compareOTP) {
+        const isValidOTP = await compare(otp, otpSessionCookie.otp);
+        if (!isValidOTP) {
             return NextResponse.json({error: "OTP is invalid"}, {status:404})
         }
         
-        // Check if the OTP is expired
-        if (otpData.expiresAt < new Date()) {
-            return NextResponse.json({error: "OTP is expired"}, {status:404})
+        // Get the session and mark it as mfaVerified
+        const baseSession = cookies().get('session');
+        if (!baseSession) {
+            return NextResponse.json({error: "Session not found"}, {status:404})
         }
-        // Update the session to be mfaVerified
-        await db.session.update({
-            where: { sessionId: sessionData.sessionId },
-            data: {
-                mfaVerified: true
-            }
+
+        const baseSessionCookie = await decrypt(baseSession.value);
+        if (!baseSessionCookie) {
+            return NextResponse.json({error: "Session not found"}, {status:404})
+        }
+
+        const baseSessionData = await db.session.findMany({
+            where: {userId: otpSessionData.userId }
         })
 
-        await db.oTP.delete({
-            where: {
-                otp: otpData.otp
+        // For each session info, find the one that bcrypt compares to the token
+        let isValid = false;
+        let index = 0;
+        for (let i = 0; i < baseSessionData.length; i++) {
+            isValid = await compare(baseSessionCookie.token, baseSessionData[i].token);
+            if (isValid) {
+                index = i;
+                break;
             }
+        }
+        if (!isValid) {
+            return NextResponse.json({error: "Invalid session"}, {status:401})
+        }
+
+        // Mark the session as mfaVerified
+        await db.session.update({
+            where: { id: baseSessionData[index].id },
+            data: { mfaVerified: true }
         })
+
+        // Delete the OTP session
+        await db.oTP.delete({
+            where: { userId: otpSessionData.userId }
+        })
+
         return NextResponse.json({success: "OTP is valid"}, {status:200})
         } catch (error) {
             return NextResponse.json({error: "Something went wrong"}, { status: 500 })

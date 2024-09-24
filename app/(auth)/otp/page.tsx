@@ -1,6 +1,5 @@
 
 import OTPComponent from "./OTPComponent"
-import { redirect } from "next/navigation";
 
 export default async function OTPPage() {
 

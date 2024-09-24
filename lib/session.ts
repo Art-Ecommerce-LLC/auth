@@ -21,7 +21,8 @@ const getExpirationTime = (sessionType: string): Date => {
 };
 
 // Helper to create session data
-const createSessionData = async (sessionType: string, userId: string): Promise<{ token: string; expiresAt: Date}> => {
+const createSessionData = async (sessionType: string, userId: string): 
+Promise<{ token: string; expiresAt: Date } | { token: string; expiresAt: Date; otp: string }> => {
   const expiresAt = getExpirationTime(sessionType);
   let token: string;
   let hashedToken: string | null = null;
@@ -30,6 +31,18 @@ const createSessionData = async (sessionType: string, userId: string): Promise<{
 
   switch (sessionType) {
     case 'session':
+
+      // Check if a session already exists for the user
+      const recentSession = await db.session.findFirst({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      // If a session exists and is not expired, return the existing token
+      if (recentSession && recentSession.expiresAt > new Date()) {
+        return { token: recentSession.token, expiresAt: recentSession.expiresAt };
+      }
+
       token = createId(); // If sessionId is not provided, generate one
       hashedToken = await hash(token, 10);
       const ipAddress = IP(); // Call the IP function to get the IP address
@@ -67,19 +80,41 @@ const createSessionData = async (sessionType: string, userId: string): Promise<{
       }
       break;
     case 'otp':
+      const existingOtp = await db.oTP.findUnique({
+        where: {
+          userId,
+          expiresAt: {
+            gt: new Date(), // OTP is valid if it expires in the future
+          },
+        },
+      });
+
+      if (existingOtp) {
+        // If a valid OTP exists, return it instead of creating a new one
+        return { token: existingOtp.token, expiresAt: existingOtp.expiresAt, otp: existingOtp.otp };
+      }
+      const existingSession = await db.session.findFirst({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (!existingSession) {
+        throw new Error('No session exists for the user to link the OTP');
+      }
+
       otp = Math.floor(100000 + Math.random() * 900000).toString(); // Generate OTP
       hashedOtp = await hash(otp, 10);
-      token = createId();
-      hashedToken = await hash(token, 10);
+      token = existingSession.token;
       await db.oTP.create({
         data: {
           otp: hashedOtp,
           expiresAt,
           userId,
-          token: hashedToken,
+          token,
         },
       });
-      break;
+
+      return { token, expiresAt, otp };
     default:
       throw new Error('Unsupported session type');
   }

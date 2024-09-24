@@ -4,7 +4,8 @@ import { NextResponse, NextRequest } from "next/server";
 import db from "@/lib/db";
 import bcrypt from "bcrypt";
 import * as z from "zod";
-
+import { manageSession } from "@/lib/session";
+import { sendEmail } from "@/app/utils/mail";
 // Define a schema for input Validation
 const userSchema = z
   .object({
@@ -45,9 +46,28 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({error:"Email not verified"}, {status:201})
         }
 
+        // Create base session and otp session
+        await manageSession({
+            userId: existingUser.id,
+            sessionType: 'session'
+        });
+
+        const otpSession = await manageSession({
+            userId: existingUser.id,
+            sessionType: 'otp',
+        });
+
+        // Send the email
+        await sendEmail({
+            to: existingUser.email,
+            type: "otp",
+            session: otpSession.token,
+        });
+
         return NextResponse.json({success: "Login successful"}, {status:200})
 
         } catch (error) {
+            console.log(error)
             return NextResponse.json({error: "Something went wrong"}, { status: 500 })
         }
     }

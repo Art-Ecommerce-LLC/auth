@@ -15,8 +15,9 @@ export const validateSession = cache(async (sessionType: string) => {
   }
 
   const sessionCookie = await decrypt(session.value);
-
+  console.log(sessionCookie);
   if (!sessionCookie) { 
+      console.log('Session cookie could not be decrypted')
       return { user: null, session: null }; // Session cookie could not be decrypted
   }
 

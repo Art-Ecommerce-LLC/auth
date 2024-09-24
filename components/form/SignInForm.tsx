@@ -51,34 +51,20 @@ export function SignInForm() {
         },
         body: JSON.stringify(values),
       })
-
-      if (response.status == 201) {
-        // email not verified
+      const responseData = await response.json()
+      if (responseData.error) {
         toast({
           variant: "destructive",
-          description: "Email not verified",
+          description: "Something Went Wrong",
         })
-        router.push('/verify-email')
-      }
-      else if (response.status == 402) {
-        toast({
-          variant: "destructive",
-          description: "Not MFA Verified",
-        })
-        router.push('/otp')
-      } else if (response.status == 404) {
-        toast({
-          variant: "destructive",
-          description: "Email or Password are incorrect",
-        })
-      } else if(response.status == 200) {
+      } else {
         toast({
           variant: "success",
-          description: "Logged In Successfully",
+          description: "Login Successful",
         })
-        router.push('/dashboard')
+        router.push('/otp')
       }
-  }
+    }
 
     return (
         <Form {...form}>

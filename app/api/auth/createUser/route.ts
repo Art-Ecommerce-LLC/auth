@@ -55,13 +55,13 @@ export async function POST(req: NextRequest) {
               sessionType: 'verifyEmail', 
               encryptSession: true
         });
-        console.log(session);
+
         await sendEmail({
             to: user.email,
             type: 'verifyEmail',
             session: session.token
         })
-        
+
         return NextResponse.json({success: "User Created"}, {status:200})
 
     } catch (error) {

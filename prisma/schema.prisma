@@ -50,7 +50,6 @@ model OTP {
   token           String    @map("token") @unique
   userId          String    @map("user_id") @unique
   otp             String    @unique
-  used            Boolean   @default(false)
   expiresAt       DateTime  @map("expires_at")
   createdAt       DateTime  @map("created_at") @default(now())
   updatedAt       DateTime  @map("updated_at") @updatedAt
@@ -70,7 +69,6 @@ model ResetPassword {
   expiresAt   DateTime  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  used        Boolean  @default(false)
 
   user        User     @relation(fields: [userId], references: [id])
   
@@ -84,8 +82,7 @@ model EmailVerification {
   expiresAt   DateTime 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  used        Boolean  @default(false) 
-
+  
   user        User     @relation(fields: [userId], references: [id])
 
   @@map("email_verifications")
