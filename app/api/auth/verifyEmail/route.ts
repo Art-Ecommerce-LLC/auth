@@ -3,6 +3,7 @@ import db from "@/lib/db";
 import * as z from "zod";
 import { decrypt } from "@/lib/encrypt";
 import { compare } from "bcrypt";
+import { deleteSession } from "@/lib/session";
 
 // Define a jwt schema for input Validation
 const jwtSchema = z.object({
@@ -60,10 +61,7 @@ export async function GET(req: NextRequest) {
             }
         })
 
-        // Delete the session
-        await db.emailVerification.delete({
-            where: { userId: user.id }
-        })
+        deleteSession({ userId: user.id, cookieNames: ['verifyEmail'] })
 
         return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/verified-email`)
     } catch (error) {

@@ -18,5 +18,19 @@ export async function getCookie(name: string) {
 }
 
 export async function deleteCookie(name: string) {
-  cookies().delete(name);
+  console.log('Deleting cookie', name);
+
+  const serverCookies = cookies();
+
+  serverCookies.delete(name);
+
+  serverCookies.set(name, '', {
+    httpOnly: true,
+    secure: true,
+    expires: new Date(0),
+    maxAge: 0,
+    sameSite: 'strict',
+    path : '/'
+  });
+
 }

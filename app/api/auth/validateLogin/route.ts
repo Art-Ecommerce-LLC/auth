@@ -46,11 +46,6 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({error:"Email not verified"}, {status:201})
         }
 
-        // Create base session and otp session
-        await manageSession({
-            userId: existingUser.id,
-            sessionType: 'session'
-        });
 
         const otpSession = await manageSession({
             userId: existingUser.id,
@@ -58,10 +53,20 @@ export async function POST(req: NextRequest) {
         });
 
         // Send the email
+
+        if (!otpSession) {
+            return NextResponse.json({error: "OTP session not created"}, {status:500})
+        }
+
+        if (!('otp' in otpSession)) {
+            return NextResponse.json({error: "OTP not found in session data"}, {status:500})
+        }
+
         await sendEmail({
             to: existingUser.email,
             type: "otp",
             session: otpSession.token,
+            otp: otpSession.otp,
         });
 
         return NextResponse.json({success: "Login successful"}, {status:200})

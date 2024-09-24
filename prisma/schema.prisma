@@ -23,6 +23,7 @@ model User {
   sessions Session[] 
   resetPasswords ResetPassword?
   emailVerifications EmailVerification?
+  otps OTP?
   @@map("users")
 
 }
@@ -38,9 +39,7 @@ model Session {
   ipAddress        String    @map("ip_address") 
 
   user             User      @relation(fields: [userId], references: [id])
-  otps             OTP? 
 
-  @@unique([token, userId])
   @@map("sessions")
 }
   
@@ -55,8 +54,7 @@ model OTP {
   updatedAt       DateTime  @map("updated_at") @updatedAt
 
 
-  session         Session  @relation(fields: [token, userId], references: [token, userId])
-  @@unique([token, userId])
+  user         User  @relation(fields: [userId], references: [id])
   
   @@map("otps")
 }

@@ -13,6 +13,7 @@ export async function POST() {
         const session = cookies().get('otp');
 
         if (!session) {
+            console.log("Session not found")
             return NextResponse.json({ error: "Session not found" }, { status: 404 })
         }
 
@@ -24,6 +25,7 @@ export async function POST() {
         })
 
         if (!sessionData) {
+            console.log("Session not found")
             return NextResponse.json({ error: "Session not found" }, { status: 404 })
         }
 
@@ -31,6 +33,7 @@ export async function POST() {
         const isValid = await compare(sessionCookie.token, sessionData.token)
 
         if (!isValid) {
+            console.log("Invalid session")
             return NextResponse.json({ error: "Invalid session" }, { status: 401 })
         }
 
@@ -47,11 +50,19 @@ export async function POST() {
         await deleteSession({ userId: user.id, cookieNames: ['otp'] })
         const newSession = await manageSession({ userId: user.id, sessionType: 'otp'})
 
+        if (!newSession) {
+            return NextResponse.json({error: "OTP session not created"}, {status:500})
+        }
+
+        if (!('otp' in newSession)) {
+            return NextResponse.json({error: "OTP not found in session data"}, {status:500})
+        }
 
         await sendEmail({
             to: user.email,
             type: "otp",
-            session: newSession.token
+            session: newSession.token,
+            otp: newSession.otp
         });
     
         return NextResponse.json({success: "success "}, {status:200})

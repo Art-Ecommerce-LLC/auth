@@ -2,9 +2,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { decrypt } from '@/lib/encrypt';
-import { cookies } from 'next/headers';
+
 // Specify protected and public routes
-const protectedRoutes = ['/dashboard'];
+const protectedRoutes = ['/dashboard',];
 const publicRoutes = ['/login', '/signup', '/'];
 
 export default async function middleware(req: NextRequest) {
@@ -13,41 +13,21 @@ export default async function middleware(req: NextRequest) {
   // Determine if the current route is protected or public
   const isProtectedRoute = protectedRoutes.includes(path);
   const isPublicRoute = publicRoutes.includes(path);
-
-  const cookie = cookies().get("session")?.value;
-
-  if (!cookie && isProtectedRoute) {
-    return NextResponse.redirect(new URL('/sign-in', req.nextUrl));
+  const sessionCookie = req.cookies.getAll();
+  console.log(sessionCookie);
+  // If the route is public, continue to the next middleware
+  if (isPublicRoute) {
+    return NextResponse.next();
   }
 
-  if (!cookie && isPublicRoute) {
-    return NextResponse.next(); 
+  // If the route is protected, check if the session is valid
+  if (isProtectedRoute) {
+    // Decrypt the session cookie
+    
+
+    
+    return NextResponse.next();
   }
-
-  try {
-    const session = await decrypt(cookie!);
-    if (isProtectedRoute && !session.sessionId) {
-      return NextResponse.redirect(new URL('/sign-in', req.nextUrl));
-    }
-
-    // If session is valid and accessing a public route, redirect to /dashboard
-    // Check the cookie hasn't expired
-    const currentTime = new Date().getTime();
-    const expireDate = new Date(session.expiresAt).getTime();
-
-    if (expireDate < currentTime) {
-      return NextResponse.redirect(new URL('/sign-in', req.nextUrl));
-    }
-
-
-  } catch (error) {
-    if (isProtectedRoute) {
-      return NextResponse.redirect(new URL('/sign-in', req.nextUrl));
-    }
-  }
-
-  // Default behavior: allow the request to proceed
-  return NextResponse.next();
 }
 
 // Apply the middleware to specific routes
