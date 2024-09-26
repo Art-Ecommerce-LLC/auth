@@ -1,6 +1,7 @@
 'server only';
 
 import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import db from "@/lib/db";
 import { decrypt } from "@/lib/encrypt";
 import { cookies } from "next/headers";
@@ -8,7 +9,7 @@ import { sendEmail } from "@/app/utils/mail";
 import { compare } from "bcrypt";
 import { deleteSession, manageSession } from "@/lib/session";
 
-export async function POST() {
+export async function POST(request : NextRequest) {
     try {
         const session = cookies().get('verifyEmail');
  
@@ -49,7 +50,7 @@ export async function POST() {
         // Send the email verification
         // Delete the previous session and make a new one
 
-        await deleteSession({ userId: user.id, cookieNames: ['verifyEmail'] })
+        await deleteSession({ userId: user.id, cookieNames: ['verifyEmail'], request})
         const newSession = await manageSession({ userId: user.id, sessionType: 'verifyEmail', encryptSession: true })
 
         if (!newSession) {

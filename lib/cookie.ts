@@ -1,4 +1,7 @@
+'use server'
+
 import { cookies } from 'next/headers';
+import { NextRequest } from 'next/server';
 
 export async function createCookie(name: string, value: string, expires: Date) {
   const isProduction = process.env.NODE_ENV === 'production';
@@ -17,11 +20,12 @@ export async function getCookie(name: string) {
   return cookie;
 }
 
-export async function deleteCookie(name: string) {
+export async function deleteCookie(name: string, req: NextRequest) {
   console.log('Deleting cookie', name);
 
   const serverCookies = cookies();
-
+  console.log('serverCookies', serverCookies);
+  console.log('requestCookies', req.cookies);
   serverCookies.delete(name);
 
   serverCookies.set(name, '', {

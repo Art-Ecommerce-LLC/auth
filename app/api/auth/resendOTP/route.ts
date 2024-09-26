@@ -1,6 +1,6 @@
 'use server';
 
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import db from "@/lib/db";
 import { decrypt } from "@/lib/encrypt";
 import { cookies } from "next/headers";
@@ -8,7 +8,7 @@ import { sendEmail } from "@/app/utils/mail";
 import { compare } from "bcrypt";
 import { deleteSession, manageSession } from "@/lib/session";
 
-export async function POST() {
+export async function POST(request: NextRequest) {
     try {
         const session = cookies().get('otp');
 
@@ -47,7 +47,7 @@ export async function POST() {
         }
 
         // Delete the existing otp session and make a new one
-        await deleteSession({ userId: user.id, cookieNames: ['otp'] })
+        await deleteSession({ userId: user.id, cookieNames: ['otp'], request})
         const newSession = await manageSession({ userId: user.id, sessionType: 'otp'})
 
         if (!newSession) {

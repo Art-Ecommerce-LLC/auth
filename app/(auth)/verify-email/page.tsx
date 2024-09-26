@@ -1,9 +1,10 @@
 
 import VerifyEmailComponent from "./VerifyEmailComponent"
-
+import { validateVerifyEmailPage } from "@/lib/dto";
 
 export default async function VerifyEmailPage() {
 
+  await validateVerifyEmailPage();
 
   return (
     <main className="flex flex-col min-h-screen w-full items-center justify-center bg-primary text-primary-foreground">

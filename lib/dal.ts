@@ -9,7 +9,7 @@ export const validateSession = cache(async (sessionType: string) => {
   // Get session from cookies
 
   const session = cookies().get(sessionType);
-
+  console.log(session);
   if (!session) {
       return { user: null, session: null }; // No session found in cookies
   }
@@ -27,8 +27,8 @@ export const validateSession = cache(async (sessionType: string) => {
       // Query the appropriate session table based on the session type
       switch (sessionType) {
           case 'session':
-              sessionRecord = await db.session.findMany({
-                  where: { userId: sessionCookie.userId },
+              sessionRecord = await db.session.findUnique({
+                  where: { id: sessionCookie.sessionId },
               });
               break;
           case 'verifyEmail':

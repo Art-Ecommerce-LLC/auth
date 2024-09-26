@@ -46,10 +46,15 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({error:"Email not verified"}, {status:201})
         }
 
+        // Create a new session that isn't mfa verified
+        await manageSession({
+            userId: existingUser.id,
+            sessionType: 'session'
+        })
 
         const otpSession = await manageSession({
             userId: existingUser.id,
-            sessionType: 'otp',
+            sessionType: 'otp'
         });
 
         // Send the email

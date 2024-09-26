@@ -10,10 +10,10 @@ const jwtSchema = z.object({
     session: z.string().min(1),
 })
 
-export async function GET(req: NextRequest) {
+export async function GET(request: NextRequest) {
     try {
         // Grab the encrypted session data from the sessionId url parameter
-        const { searchParams } = new URL(req.url);
+        const { searchParams } = new URL(request.url);
         const session = searchParams.get('verifyEmail');
 
         if (!session) {
@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
             }
         })
 
-        deleteSession({ userId: user.id, cookieNames: ['verifyEmail'] })
+        deleteSession({ userId: user.id, cookieNames: ['verifyEmail'], request: request })
 
         return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/verified-email`)
     } catch (error) {

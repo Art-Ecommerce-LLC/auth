@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./styles/globals.css";
 import { Toaster } from "@/components/ui/toaster"
+import {NextUIProvider} from "@nextui-org/react";
 
 export const metadata: Metadata = {
   title: "Auth Project",
@@ -15,8 +16,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+      <NextUIProvider>
         {children}
         <Toaster />
+        </NextUIProvider>
       </body>
     </html>
   );

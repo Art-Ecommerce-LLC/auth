@@ -12,10 +12,10 @@ const userSchema = z.object({
     confirmPassword: z.string().min(1, 'Confirm Password is required').min(8, 'Password must have than 8 characters'),
 })
 
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
     try {
         // get the body of the request
-        const body = await req.json()
+        const body = await request.json()
 
         // validate the input
         const { password, confirmPassword } = userSchema.parse(body)
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
         }
 
         // validate the cookie session
-        const cookieSession = cookies().get('session')
+        const cookieSession = cookies().get('resetPassword')
 
         if (!cookieSession) {
             return NextResponse.json({ error: 'Session not found' }, { status: 404 })
@@ -34,18 +34,21 @@ export async function POST(req: NextRequest) {
 
         // Decrypt the session if it is valid
         const session = await decrypt(cookieSession.value)
-
+        console.log('session', session)
         // validate the session exists, first 
         const sessionData = await db.resetPassword.findUnique({
-            where: { token : session }
+            where: { userId: session.userId }
         })
 
+        // Validate the token
         if (!sessionData) {
             return NextResponse.json({ error: 'Session not found' }, { status: 404 })
         }
+        
+        const isValidateToken = await bcrypt.compare(session.token, sessionData.token)
 
-        if (!sessionData.used) {
-            return NextResponse.json({ error: 'Session already used' }, { status: 404 })
+        if (!isValidateToken) {
+            return NextResponse.json({ error: 'Invalid session' }, { status: 404 })
         }
 
         // validate the user exists
@@ -69,7 +72,8 @@ export async function POST(req: NextRequest) {
         // delete the session
         await deleteSession({
             userId: user.id,
-            deleteAllSessions: true
+            deleteAllSessions: true,
+            request: request
         })
 
         return NextResponse.json({ success: 'Password changed' }, { status: 200 })

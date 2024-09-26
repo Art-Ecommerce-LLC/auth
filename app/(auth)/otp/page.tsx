@@ -1,7 +1,11 @@
 
-import OTPComponent from "./OTPComponent"
+import OTPComponent from "./OTPComponent";
+import { validateOtpPage } from "@/lib/dto";
 
 export default async function OTPPage() {
+  
+  await validateOtpPage();
+  // Must validate the session, and otp session
 
   return (
     <main className="flex flex-col min-h-screen w-full items-center justify-center bg-primary text-primary-foreground">

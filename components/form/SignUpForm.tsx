@@ -1,11 +1,13 @@
 "use client"
- 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import Link from "next/link"
-import { useToast } from "../hooks/use-toast"
-import { Button } from "../ui/button"
+
+import { useState } from "react";
+import { Spinner } from "@nextui-org/spinner";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { set, z } from "zod";
+import Link from "next/link";
+import { useToast } from "../hooks/use-toast";
+import { Button } from "../ui/button";
 import {
   Form,
   FormControl,
@@ -13,8 +15,9 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "../ui/form"
-import { Input } from "../ui/input"
+} from "../ui/form";
+import { Input } from "../ui/input";
+import { useRouter } from "next/navigation";
 
  
 const formSchema = z.object({
@@ -32,7 +35,9 @@ const formSchema = z.object({
 
 export function SignUpForm() {
     // 1. Define your form.
-    const { toast } = useToast()
+    const { toast } = useToast();
+    const router = useRouter()
+    const [loading, setLoading] = useState(false);
     const form = useForm<z.infer<typeof formSchema>>({
       resolver: zodResolver(formSchema),
       defaultValues: {
@@ -47,41 +52,57 @@ export function SignUpForm() {
     async function onSubmit(values: z.infer<typeof formSchema>) {
       // Do something with the form values.
       // ✅ This will be type-safe and validated.
-      const response = await fetch('/api/auth/createUser', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(values),
-      })
-
-      const responseData = await response.json()
-      
-      if (responseData.error) {
+      setLoading(true); // Show loading spinner
+      try{
+        const response = await fetch('/api/auth/createUser', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(values),
+        })
+  
+        const responseData = await response.json()
+        
+        if (responseData.error) {
+          toast({
+            variant: "destructive",
+            description: "Something Went Wrong,",
+            duration: 5000,
+          });
+          setLoading(false);
+        } else {
+          toast({
+            variant: "success",
+            description: "Account Created Successfully, Redirecting...",
+            duration: 5000,
+          });
+          router.push("/verify-email");
+      }} catch (error) {
         toast({
           variant: "destructive",
-          description: "Something Went Wrong,"
+          description: "Something Went Wrong",
+          duration: 5000,
         });
         // wipe the form
-        form.reset();
-      } else {
-        toast({
-          variant: "success",
-          description: "Account Created Successfully, Redirecting...",
-        });
-        // Redirect to the verify email page
-        // wipe the form
-        form.reset();
-        setTimeout(() => {
-          window.location.href = '/verify-email';
-        }, 2000)
-    }
+        setLoading(false);
+      }
   }
 
     return (
+      <div className="relative">
+      {/* Dimming Overlay */}
+      {loading && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center pointer-events-none">
+          <Spinner size="lg" color="success"/>
+        </div>
+      )}
         <Form {...form}>
           <h1 className="text-2xl text-center font-semibold pb-3">Sign Up</h1>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+          <form 
+          onSubmit={form.handleSubmit(onSubmit)} 
+          className="space-y-3"
+          style={{ pointerEvents: loading ? "none" : "auto" }}>
             <FormField
               control={form.control}
               name="username"
@@ -89,7 +110,10 @@ export function SignUpForm() {
                 <FormItem>
                   <FormLabel>Username</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter username..." {...field} />
+                    <Input 
+                    placeholder="Enter username..." 
+                    disabled={loading}
+                    {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -102,7 +126,10 @@ export function SignUpForm() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter email..." {...field} />
+                    <Input 
+                    placeholder="Enter email..." 
+                    disabled={loading}
+                    {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -115,7 +142,11 @@ export function SignUpForm() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="Enter password.." {...field} />
+                    <Input 
+                    type="password" 
+                    placeholder="Enter password.."
+                    disabled={loading} 
+                    {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -128,23 +159,34 @@ export function SignUpForm() {
                 <FormItem>
                   <FormLabel>Confirm Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="Confirm passwored..." {...field} />
+                    <Input 
+                    type="password" 
+                    placeholder="Confirm passwored..." 
+                    disabled={loading}
+                    {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <div>
-              <Button type="submit" variant="outline" className="text-black w-full font-size-sm mt-2">Submit</Button>
+              <Button 
+              type="submit" 
+              variant="outline" 
+              className="text-black w-full font-size-sm mt-2"
+              disabled={loading}>
+              {loading ? "Submitting..." : "Submit"}
+              </Button>
             </div>
             <div>
-              <p className="text-white font-size-sm">Already have an account? <Link href="/sign-in" className="text-blue-500">Sign In</Link></p>  
+              <p className="text-white font-size-sm">Already have an account? {" "}<Link href="/sign-in" className="text-blue-500">{" "}Sign In</Link></p>  
             </div>
             <div>
-                <p className="text-white font-size-sm">By signing up, you agree to our <Link href="/terms-of-service" className="text-blue-500">Terms of Service</Link> and <Link href="/privacy-policy" className="text-blue-500">Privacy Policy</Link>
+                <p className="text-white font-size-sm">By signing up, you agree to our <Link href="/terms-of-service" className="text-blue-500">Terms of Service</Link> and {" "}<Link href="/privacy-policy" className="text-blue-500">Privacy Policy</Link>
                 </p>
             </div>
           </form>
         </Form>
+        </div>
       )
   }

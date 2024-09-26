@@ -1,33 +1,30 @@
 "server only";
 
 import { NextRequest, NextResponse } from 'next/server';
-import { decrypt } from '@/lib/encrypt';
-
+import { redirect } from 'next/navigation';
 // Specify protected and public routes
-const protectedRoutes = ['/dashboard',];
-const publicRoutes = ['/login', '/signup', '/'];
+const cookieRoutes = ['/dashboard','/otp','/reset-password','/verify-email','/sign-out'];
+const publicRoutes = ['/'];
 
 export default async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
   // Determine if the current route is protected or public
-  const isProtectedRoute = protectedRoutes.includes(path);
+  const isProtectedRoute = cookieRoutes.includes(path);
   const isPublicRoute = publicRoutes.includes(path);
   const sessionCookie = req.cookies.getAll();
   console.log(sessionCookie);
-  // If the route is public, continue to the next middleware
-  if (isPublicRoute) {
-    return NextResponse.next();
-  }
-
-  // If the route is protected, check if the session is valid
+  const NEXTAUTH_URL = process.env.NEXTAUTH_URL;
   if (isProtectedRoute) {
-    // Decrypt the session cookie
-    
-
-    
-    return NextResponse.next();
+    // Check if the user is authenticated
+    if (sessionCookie.length === 0) {
+      return NextResponse.redirect(NEXTAUTH_URL + "/sign-in");
+    }
+  } else if (isPublicRoute) {
+    // 
+    NextResponse.next();
   }
+
 }
 
 // Apply the middleware to specific routes

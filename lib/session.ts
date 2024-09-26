@@ -1,9 +1,12 @@
+'use server';
+
 import db from './db';
 import { encrypt } from './encrypt';
 import { hash } from 'bcrypt';
 import { createId } from '@paralleldrive/cuid2';
 import { deleteCookie, createCookie } from './cookie';
 import { IP } from '@/app/utils/ip';
+import { NextRequest } from 'next/server';
 
 // Helper to determine expiration based on session type
 const getExpirationTime = (sessionType: string): Date => {
@@ -21,8 +24,10 @@ const getExpirationTime = (sessionType: string): Date => {
 };
 
 // Helper to create session data
-const createSessionData = async (sessionType: string, userId: string, mfaVerified = false): 
-Promise<{ token: string; expiresAt: Date, userId: string } | { token: string; expiresAt: Date; userId: string, otp: string }> => {
+const createSessionData = async (sessionType: string, userId: string, mfaVerified = false, sessionId?: string): 
+Promise<{ token: string; expiresAt: Date, userId: string } | 
+{ token: string; expiresAt: Date; userId: string, sessionId: string } |
+{token: string; expiresAt: Date; userId: string, otp: string}> => {
   const expiresAt = getExpirationTime(sessionType);
   let token: string;
   let hashedToken: string | null = null;
@@ -33,19 +38,19 @@ Promise<{ token: string; expiresAt: Date, userId: string } | { token: string; ex
     case 'session':
 
       const newSessionToken = createId();
-
+      const newDate = getExpirationTime(sessionType);
+      const existingToken = await hash(newSessionToken, 10);
       // Check if a session already exists for the user
-      const recentSession = await db.session.findFirst({
-        where: { userId },
-        orderBy: { createdAt: 'desc' },
+      const recentSession = await db.session.findUnique({
+        where: { userId,
+          id: sessionId
+         },
       });
 
       // If a session exists and is not expired, return the existing token
-      if (recentSession && recentSession.expiresAt > new Date()) {
-        const newDate = getExpirationTime(sessionType);
-        const existingToken = await hash(newSessionToken, 10);
+      if (recentSession) {
         await db.session.update({
-          where: { id: recentSession.id },
+          where: { id: sessionId},
           data: {
             token: existingToken,
             expiresAt: newDate,
@@ -53,13 +58,12 @@ Promise<{ token: string; expiresAt: Date, userId: string } | { token: string; ex
           },
         });
 
-        return { token: recentSession.token, expiresAt: newDate, userId };
+        return { token: newSessionToken, expiresAt: newDate, userId, sessionId };
       }
 
-      token = createId(); // If sessionId is not provided, generate one
-      hashedToken = await hash(token, 10);
+      hashedToken = await hash(newSessionToken, 10);
       const ipAddress = IP(); // Call the IP function to get the IP address
-      await db.session.create({
+      const newSession = await db.session.create({
         data: {
           userId,
           expiresAt,
@@ -68,11 +72,10 @@ Promise<{ token: string; expiresAt: Date, userId: string } | { token: string; ex
           mfaVerified
         },
       });
-      break;
+      return {token: newSessionToken, expiresAt, userId, sessionId: newSession.id }
     case 'verifyEmail':
     case 'resetPassword':
       token = createId();
-      console.log(token);
       hashedToken = await hash(token, 10);
       console.log(hashedToken);
       if (sessionType === 'verifyEmail') {
@@ -117,7 +120,7 @@ Promise<{ token: string; expiresAt: Date, userId: string } | { token: string; ex
           
           },
         });
-        return { token: newToken, expiresAt: newDate, otp: newOtp, userId };
+        return { token: newToken, expiresAt: newDate, userId, otp: newOtp };
 
       }
 
@@ -133,7 +136,7 @@ Promise<{ token: string; expiresAt: Date, userId: string } | { token: string; ex
         },
       });
       console.log(otp);
-      return { token: newToken, expiresAt, otp, userId };
+      return { token: newToken, expiresAt, userId, otp };
     default:
       throw new Error('Unsupported session type');
   }
@@ -146,24 +149,38 @@ export async function manageSession({
   userId,
   sessionType,
   encryptSession = true,
-  mfaVerified = false
+  mfaVerified = false,
+  sessionId = ''
 }: {
   userId: string;
   sessionType: string;
   encryptSession?: boolean; // Optional
-  mfaVerified?: boolean; // Optional
+  mfaVerified?: boolean;
+  sessionId?: string // Optional
 }) : Promise<{ 
   token: string; 
   expiresAt: Date } | 
   { token: string; 
     expiresAt: Date;
-    otp: string }> {
+    sessionId: string} |
+    { token: string; 
+      expiresAt: Date;
+      otp: string}> {
   try {
     // Create session data make switch case for different session types and return values
     let sessionJWT;
     let finalToken
     switch (sessionType) {
       case 'session':
+        sessionJWT = await createSessionData(sessionType, userId, mfaVerified, sessionId);
+        finalToken = await encrypt(sessionJWT);
+        createCookie(sessionType, finalToken, sessionJWT.expiresAt);
+
+        if (!('sessionId' in sessionJWT)) {
+          throw new Error('Error in session')
+        }
+
+        return { token: finalToken, expiresAt: sessionJWT.expiresAt, sessionId: sessionJWT.sessionId};
       case 'verifyEmail':
       case 'resetPassword':
         sessionJWT = await createSessionData(sessionType, userId, mfaVerified);
@@ -171,17 +188,13 @@ export async function manageSession({
         createCookie(sessionType, finalToken, sessionJWT.expiresAt);
         return { token: finalToken, expiresAt: sessionJWT.expiresAt};
       case 'otp':
-        sessionJWT = await createSessionData(sessionType, userId);
+        sessionJWT = await createSessionData(sessionType, userId, mfaVerified);
         finalToken = await encrypt(sessionJWT);
-        console.log(finalToken);
         createCookie(sessionType, finalToken, sessionJWT.expiresAt);
-        // Check if 'otp' exists in sessionJWT before trying to access it
-        if ('otp' in sessionJWT) {
-          console.log('otp exists'+ sessionJWT.otp);
-          return { token: finalToken, expiresAt: sessionJWT.expiresAt, otp: sessionJWT.otp };
-        } else {
-          throw new Error('OTP not found in session data');
+        if (!('otp' in sessionJWT)) {
+          throw new Error('error occured in otp')
         }
+        return { token: finalToken, expiresAt: sessionJWT.expiresAt, otp: sessionJWT.otp};
       default:
         throw new Error('Unsupported session type');
     }
@@ -192,10 +205,12 @@ export async function manageSession({
 
 export async function deleteSession({
   userId,
+  request,
   cookieNames = [],
   deleteAllSessions = false
 }: {
   userId: string;
+  request: NextRequest; // Optional, defaults to null
   cookieNames?: string[]; // A list of session types to delete
   deleteAllSessions?: boolean; // Optional, defaults to false
 }) {
@@ -228,25 +243,25 @@ export async function deleteSession({
 
       // Try to delete all session-related cookies
       try {
-        deleteCookie('session');
+        deleteCookie('session', request);
       } catch {
         console.log('Error deleting session cookie');
       }
 
       try {
-        deleteCookie('verifyEmail');
+        deleteCookie('verifyEmail', request);
       } catch {
         console.log('Error deleting verifyEmail cookie');
       }
 
       try {
-        deleteCookie('otp');
+        deleteCookie('otp', request);
       } catch {
         console.log('Error deleting OTP cookie');
       }
 
       try {
-        deleteCookie('resetPassword');
+        deleteCookie('resetPassword', request);
       } catch {
         console.log('Error deleting resetPassword cookie');
       }
@@ -283,7 +298,7 @@ export async function deleteSession({
 
       // Try to delete the corresponding cookie
       try {
-        deleteCookie(cookieName);
+        deleteCookie(cookieName, request);
       } catch {
         console.log(`Error deleting ${cookieName} cookie`);
       }

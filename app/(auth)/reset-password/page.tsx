@@ -1,9 +1,9 @@
 import { ResetPasswordForm } from "@/components/form/ResetPasswordForm"
-import { validateSession } from "@/lib/dal";
+import { validateResetPasswordPage } from "@/lib/dto";
 
 export default async function ResetPasswordPage() {
 
-  await validateSession('resetPassword');
+  await validateResetPasswordPage();
 
   return (
     <main className="flex flex-col min-h-screen w-full items-center justify-center bg-primary text-primary-foreground">
