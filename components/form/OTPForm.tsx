@@ -29,7 +29,8 @@ const formSchema = z.object({
 export function OTPForm() {
   const { toast } = useToast()
   const router = useRouter()
-  const [loading, setLoading] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false)
+  const [resendLoading, setResendLoading] = useState(false)
 
   // Initialize the form with react-hook-form
   const form = useForm<z.infer<typeof formSchema>>({
@@ -39,10 +40,46 @@ export function OTPForm() {
     },
   })
 
+  async function resendEmail() {
+    setResendLoading(true);
+    try {
+        const response = await fetch('/api/auth/resendOTP', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            })
+        const responseData = await response.json()
+        if (responseData.error) {
+            toast({
+                variant: "destructive",
+                description: "Something Went Wrong",
+                duration: 5000,
+            })
+            setResendLoading(false)
+        } else {
+            toast({
+                variant: "success",
+                description: "OTP has been resent",
+                duration: 5000,
+                })
+            }
+            setResendLoading(false)
+    } catch {
+        toast({
+            variant: "destructive",
+            description: "Something Went Wrong",
+            duration: 5000,
+        })
+        setResendLoading(false)
+    }
+}
+
   // Handle form submission
   async function onSubmit(values: z.infer<typeof formSchema>) {
       // Send request to validate OTP
-    setLoading(true); // Show loading spinner
+      
+    setSubmitLoading(true); // Show loading spinner
     try {
       const response = await fetch('/api/auth/validateOTP', {
         method: 'POST',
@@ -57,7 +94,7 @@ export function OTPForm() {
               variant: "destructive",
               description: "Invalid OTP",
           })
-          setLoading(false)
+          setSubmitLoading(false)
       } else {
           toast({
               variant: "success",
@@ -71,23 +108,25 @@ export function OTPForm() {
           description: "Something Went Wrong",
           duration: 5000,
       })
-      setLoading(false)
+      setSubmitLoading(false)
     }
   }
   return (
     <div className="relative">
       {/* Dimming Overlay */}
-      {loading && (
+      {(submitLoading || resendLoading) && (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center pointer-events-none">
           <Spinner size="lg" color="success"/>
         </div>
       )}
-    <Form {...form}>
+    <div className="flex items-center justify-center min-h-screen"> 
+      <div className="w-full max-w-md mx-auto p-6 rounded-lg shadow-md">
+      <Form {...form}>
       <h1 className="text-2xl text-left font-semibold pb-3">Enter OTP</h1>
       <form 
       onSubmit={form.handleSubmit(onSubmit)} 
       className="space-y-3 "
-      style={{ pointerEvents: loading ? "none" : "auto" }}>
+      style={{ pointerEvents: (submitLoading || resendLoading) ? "none" : "auto" }}>
         <FormField
           control={form.control}
           name="otp"
@@ -96,7 +135,7 @@ export function OTPForm() {
                     <FormControl>
                         <InputOTP 
                         maxLength={6} 
-                        disabled={loading}
+                        disabled={(submitLoading || resendLoading)}
                         {...field}>
                         <InputOTPGroup>
                             <InputOTPSlot index={0} />
@@ -117,11 +156,22 @@ export function OTPForm() {
         <Button 
         type="submit" 
         variant="success" 
-        className="w-80 mt-3"disabled={loading}>
-        {loading ? "Submitting..." : "Submit"}
+        className="w-80 mt-3" 
+        disabled={submitLoading}>
+        {submitLoading ? "Submitting..." : "Submit"}
         </Button>
+        <Button 
+          type="button"
+          variant="outline"
+            onClick={resendEmail} 
+            className="w-80 mt-1 text-black"
+            disabled={resendLoading}>
+              {resendLoading ? "Resending..." : "Resend"}
+          </Button>
       </form>
     </Form>
+      </div>
+    </div>
     </div>
   )
 }

@@ -29,18 +29,19 @@ Promise<{ token: string; expiresAt: Date, userId: string } |
 { token: string; expiresAt: Date; userId: string, sessionId: string } |
 {token: string; expiresAt: Date; userId: string, otp: string}> => {
   const expiresAt = getExpirationTime(sessionType);
+  const newSessionToken = createId();
+  const existingToken = await hash(newSessionToken, 10);
+
   let token: string;
   let hashedToken: string | null = null;
   let otp: string;
   let hashedOtp: string | null = null;
 
+  token = createId();
+  hashedToken = await hash(token, 10);
+
   switch (sessionType) {
     case 'session':
-
-      const newSessionToken = createId();
-      const newDate = getExpirationTime(sessionType);
-      const existingToken = await hash(newSessionToken, 10);
-      // Check if a session already exists for the user
       const recentSession = await db.session.findUnique({
         where: { userId,
           id: sessionId
@@ -53,12 +54,12 @@ Promise<{ token: string; expiresAt: Date, userId: string } |
           where: { id: sessionId},
           data: {
             token: existingToken,
-            expiresAt: newDate,
+            expiresAt,
             mfaVerified
           },
         });
 
-        return { token: newSessionToken, expiresAt: newDate, userId, sessionId };
+        return { token: newSessionToken, expiresAt, userId, sessionId };
       }
 
       hashedToken = await hash(newSessionToken, 10);
@@ -74,30 +75,53 @@ Promise<{ token: string; expiresAt: Date, userId: string } |
       });
       return {token: newSessionToken, expiresAt, userId, sessionId: newSession.id }
     case 'verifyEmail':
-    case 'resetPassword':
-      token = createId();
-      hashedToken = await hash(token, 10);
-      console.log(hashedToken);
-      if (sessionType === 'verifyEmail') {
-        await db.emailVerification.create({
-          data: {
-            userId,
-            token: hashedToken,
-            expiresAt,
-          },
+      // Check if a valid email verification exists
+      const existingEmailVerification = await db.emailVerification.findUnique({
+        where: { userId },
+      });
+      if (existingEmailVerification) {
+        // If a valid email verification exists, return it instead of creating a new one
+        // Create a new one and store it since it is hashed
+        await db.emailVerification.update({
+          where: { id: existingEmailVerification.id },
+          data: { token: hashedToken, expiresAt },
         });
-      } else {
-        await db.resetPassword.create({
-          data: {
-            userId,
-            token: hashedToken,
-            expiresAt,
-          },
-        });
+        return { token, expiresAt, userId };
       }
-      break;
+      await db.emailVerification.create({
+        data: {
+          userId,
+          token: hashedToken,
+          expiresAt,
+        },
+      });
+     
+      return { token, expiresAt, userId };
+    case 'resetPassword':
+      // Check if a valid reset password exists
+      const existingResetPassword = await db.resetPassword.findUnique({
+        where: { userId },
+      });
+      if (existingResetPassword) {
+        // If a valid reset password exists, return it instead of creating a new one
+        // Create a new one and store it since it is hashed
+        await db.resetPassword.update({
+          where: { id: existingResetPassword.id },
+          data: { token: hashedToken, expiresAt },
+        });
+        return { token, expiresAt, userId };
+      }
+      
+      await db.resetPassword.create({
+        data: {
+          userId,
+          token: hashedToken,
+          expiresAt,
+        },
+      });
+      
+      return { token, expiresAt, userId };
     case 'otp':
-      const newToken = createId();
       const existingOtp = await db.oTP.findUnique({
         where: {
           userId,
@@ -109,24 +133,20 @@ Promise<{ token: string; expiresAt: Date, userId: string } |
         // Create a new one and store it since it is hashed
         const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
         const newHashedOtp = await hash(newOtp, 10);
-        const newHashedToken = await hash(newToken, 10);
-        const newDate = getExpirationTime(sessionType);
         await db.oTP.update({
           where: { id: existingOtp.id },
           data: { 
             otp: newHashedOtp,
-            expiresAt: newDate,
-            token: newHashedToken,
+            expiresAt,
+            token: hashedToken,
           
           },
         });
-        return { token: newToken, expiresAt: newDate, userId, otp: newOtp };
+        return { token, expiresAt, userId, otp: newOtp };
 
       }
-
       otp = Math.floor(100000 + Math.random() * 900000).toString(); // Generate OTP
       hashedOtp = await hash(otp, 10);
-      hashedToken = await hash(newToken, 10);
       await db.oTP.create({
         data: {
           otp: hashedOtp,
@@ -135,13 +155,10 @@ Promise<{ token: string; expiresAt: Date, userId: string } |
           token: hashedToken,
         },
       });
-      console.log(otp);
-      return { token: newToken, expiresAt, userId, otp };
+      return { token, expiresAt, userId, otp };
     default:
       throw new Error('Unsupported session type');
   }
-
-  return { token, expiresAt, userId};
 };
 
 // Unified function for creating different sessions
@@ -150,13 +167,15 @@ export async function manageSession({
   sessionType,
   encryptSession = true,
   mfaVerified = false,
-  sessionId = ''
+  sessionId = '',
+  storeSession = true
 }: {
   userId: string;
   sessionType: string;
   encryptSession?: boolean; // Optional
   mfaVerified?: boolean;
   sessionId?: string // Optional
+  storeSession?: boolean; // Optional
 }) : Promise<{ 
   token: string; 
   expiresAt: Date } | 
@@ -182,10 +201,18 @@ export async function manageSession({
 
         return { token: finalToken, expiresAt: sessionJWT.expiresAt, sessionId: sessionJWT.sessionId};
       case 'verifyEmail':
-      case 'resetPassword':
         sessionJWT = await createSessionData(sessionType, userId, mfaVerified);
         finalToken = await encrypt(sessionJWT);
         createCookie(sessionType, finalToken, sessionJWT.expiresAt);
+        return { token: finalToken, expiresAt: sessionJWT.expiresAt};
+      case 'resetPassword':
+        console.log(sessionType, userId, mfaVerified)
+        sessionJWT = await createSessionData(sessionType, userId, mfaVerified);
+        console.log("JWT" + sessionJWT)
+        finalToken = await encrypt(sessionJWT);
+        if (storeSession) {
+          createCookie(sessionType, finalToken, sessionJWT.expiresAt);
+        }
         return { token: finalToken, expiresAt: sessionJWT.expiresAt};
       case 'otp':
         sessionJWT = await createSessionData(sessionType, userId, mfaVerified);

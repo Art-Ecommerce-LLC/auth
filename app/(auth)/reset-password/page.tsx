@@ -1,9 +1,18 @@
 import { ResetPasswordForm } from "@/components/form/ResetPasswordForm"
-import { validateResetPasswordPage } from "@/lib/dto";
+import { getSessionData } from "@/lib/dal"
+import { redirect } from "next/navigation"
 
 export default async function ResetPasswordPage() {
 
-  await validateResetPasswordPage();
+  const sessionData = await getSessionData('resetPassword');
+
+  if (!sessionData.isAuth) {
+    redirect('/');
+  }
+
+  // Make this page only accessable once, if the user exits the page, they will need to request a new reset password link
+
+
 
   return (
     <main className="flex flex-col min-h-screen w-full items-center justify-center bg-primary text-primary-foreground">

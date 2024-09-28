@@ -58,10 +58,17 @@ export function SignInForm() {
           body: JSON.stringify(values),
         })
         const responseData = await response.json()
-        if (responseData.error) {
+        if (responseData.error && response.status === 401) {
+          toast({
+            variant: "success",
+            description: "Email has not been verified",
+            duration: 5000,
+          })
+          router.push('/verify-email')
+        } else if (responseData.error) {
           toast({
             variant: "destructive",
-            description: "Something Went Wrong",
+            description: "Email or Username are incorrect",
             duration: 5000,
           })
           setLoading(false)

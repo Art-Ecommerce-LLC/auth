@@ -51,26 +51,13 @@ export function ForgotPasswordForm() {
           })
         const responseData = await response.json()
         if (responseData.error) {
-            toast({
-                variant: "destructive",
-                description: "Something Went Wrong",
-                duration: 5000,
-            })
-        } else {
-            toast({
-                variant: "success",
-                description: "Password reset link has been sent to your email",
-                })
-            }
             router.push('/password-reset-notify')
-      } catch {
-        toast({
-          variant: "destructive",
-          description: "Something Went Wrong",
-          duration: 5000,
-        })
-        setLoading(false)
+        } else {
+            router.push('/password-reset-notify')
+      }}catch {
+        router.push('/password-reset-notify')
       }
+      
     }
 
     return (

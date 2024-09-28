@@ -1,6 +1,6 @@
 "use client"
  
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Spinner } from "@nextui-org/spinner";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -83,7 +83,38 @@ export function ResetPasswordForm() {
         setLoading(false)
       }
     }
-
+    useEffect(() => {
+      const handleSessionDeletion = async () => {
+        await fetch("/api/auth/remove-reset-session", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+      };
+  
+      // Handle page unload (closing the page or navigating away)
+      const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+        handleSessionDeletion();
+        event.preventDefault();
+        event.returnValue = ""; // This triggers the browser's prompt for unsaved changes
+      };
+  
+      // Handle popstate event (browser back/forward navigation)
+      const handlePopState = () => {
+        handleSessionDeletion();
+      };
+  
+      // Add event listeners
+      window.addEventListener("beforeunload", handleBeforeUnload); // Tab close or refresh
+      window.addEventListener("popstate", handlePopState); // Back or forward navigation
+  
+      // Cleanup event listeners on component unmount
+      return () => {
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+        window.removeEventListener("popstate", handlePopState);
+      };
+    }, []);
     return (
       <div className="relative">
       {/* Dimming Overlay */}

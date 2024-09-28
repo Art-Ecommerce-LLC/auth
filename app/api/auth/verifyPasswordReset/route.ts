@@ -3,6 +3,7 @@ import { decrypt } from '@/lib/encrypt';
 import { z } from 'zod';
 import db from '@/lib/db';
 import { compare } from 'bcrypt';
+import { manageSession } from '@/lib/session';
 
 const jwtSchema = z.object({
     session: z.string().min(1),
@@ -49,6 +50,12 @@ export async function GET(request: NextRequest) {
             return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/404`)
         }
 
+
+        await manageSession({
+            userId: user.id,
+            sessionType: 'resetPassword'
+        })
+        
         return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/reset-password`)
 
     } catch (error) {

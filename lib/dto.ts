@@ -1,55 +1,34 @@
 'server only';
 
-import { validateSession } from './dal';
-import { redirect } from 'next/navigation'
+import { getUser, getVerifyEmailSession, getOTPSession, getResetPasswordSession } from './dal';
 
-
-export async function validateSignInPage() {
-    const {user:_, session}= await validateSession('session');
-    if (session) {
-        redirect('/dashboard');
-    }
+export function getUserData() {
+  const user = getUser();
+  return user;
 }
 
-export async function validateVerifyEmailPage() {
-    const {user:_, session}= await validateSession('verifyEmail');
-    if (!session) {
-        redirect('/sign-in');
-    }
-}
-
-export async function validateOtpPage() {
-    const {user:_, session}= await validateSession('otp');
-    if (!session) {
-        redirect('/sign-in');
-    }
-}
-
-export async function validateResetPasswordPage() {
-    const {user:_, session}= await validateSession('resetPassword');
-    console.log(session);
-    if (!session) {
-        redirect('/sign-in');
-    }
-}
-
-export async function validateMFA() {
-  const { user, session } = await validateSession('session');
-  console.log(user, session);
-  if (!user || !session) {
-    redirect('/sign-in');
+export function getSessionData(pageType: string) {
+  switch (pageType) {
+    case 'resetPassword':
+      return getResetPasswordSession();
+    case 'verifyEmail':
+      return getVerifyEmailSession();
+    case 'otp':
+      return getOTPSession();
+    default:
+      return getUser();
   }
-
-  // check mfa verified on the session as a field and the value is true
-  console.log('session', session);
-  if (!('mfaVerified' in session)) {
-    console.log('MFA not verified');
-    redirect('/sign-in');
-  }
-  return { user, session };
 }
 
-export async function getUsername() {
-  const { user } = await validateMFA();
-  return user.username;
+export function verifyPage(pageType: string) {
+  switch (pageType) {
+    case 'resetPassword':
+      return getResetPasswordSession();
+    case 'verifyEmail':
+      return getVerifyEmailSession();
+    case 'otp':
+      return getOTPSession();
+    default:
+      return getUser();
+  }
 }

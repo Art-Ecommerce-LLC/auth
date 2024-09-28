@@ -5,14 +5,31 @@ import { NextRequest } from 'next/server';
 
 export async function createCookie(name: string, value: string, expires: Date) {
   const isProduction = process.env.NODE_ENV === 'production';
-  cookies().set(name, value, {
-    httpOnly: true,
-    secure: isProduction,
-    expires: expires,
-    maxAge: expires.getTime() - Date.now(),
-    sameSite: 'strict',
-    path : '/'
-  });
+
+  console.log('Creating cookie', name, value, expires);
+
+
+  switch (name) {
+    case 'resetPassword':
+      cookies().set(name, value, {
+        httpOnly: true,
+        secure: isProduction,
+        expires: expires,
+        maxAge: expires.getTime() - Date.now(),
+        path : '/'
+      });
+      break;
+    default:
+      cookies().set(name, value, {
+        httpOnly: true,
+        secure: isProduction,
+        expires: expires,
+        maxAge: expires.getTime() - Date.now(),
+        sameSite: 'strict',
+        path : '/'
+      });
+      break;
+  }
 }
 
 export async function getCookie(name: string) {

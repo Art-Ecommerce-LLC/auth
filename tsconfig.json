@@ -22,6 +22,6 @@
     },
     "baseUrl": ".",
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "components/**/*.ts", "app/(auth)/**/*.tsx", "app/(auth)/**/*.ts", "app/(auth)/**/*.tsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "components/**/*.ts", "app/(auth)/**/*.tsx", "app/(auth)/**/*.ts"],
   "exclude": ["node_modules"]
 }

@@ -1,16 +1,20 @@
 
 import VerifyEmailComponent from "./VerifyEmailComponent"
-import { validateVerifyEmailPage } from "@/lib/dto";
+import { getSessionData } from "@/lib/dal"
+import { redirect } from "next/navigation"; // Import the redirect function
 
 export default async function VerifyEmailPage() {
-
-  await validateVerifyEmailPage();
+  const session = await getSessionData('verifyEmail');
+  
+  if (!session.isAuth) {
+    redirect('/'); // Redirect to the home page if the user is not authenticated
+  }
 
   return (
     <main className="flex flex-col min-h-screen w-full items-center justify-center bg-primary text-primary-foreground">
-        <div className="w-full max-w-96 min-w-80 p-2">
-           <VerifyEmailComponent/>
-        </div>        
+      <div className="w-full max-w-96 min-w-80 p-2">
+        <VerifyEmailComponent/>
+      </div>        
     </main>
   );
 }

@@ -1,11 +1,13 @@
 import { SignUpForm } from "@/components/form/SignUpForm"
-import { validateSignInPage } from "@/lib/dto";
+import { getSessionData } from "@/lib/dal"
+import { redirect } from "next/navigation"
 
 export default async function SignUpPage() {
 
-  // Validate if user is already logged in
-  // If user is already logged in, redirect to home page
-  await validateSignInPage();
+  const session = await getSessionData('session')
+    if (session.mfaVerified) {
+        redirect('/dashboard')
+    }
 
   return (
     <main className="flex flex-col min-h-screen w-full items-center justify-center bg-primary text-primary-foreground">

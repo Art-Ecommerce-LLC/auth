@@ -34,7 +34,8 @@ export async function POST(req : NextRequest) {
         const session = await manageSession({
             userId: user.id,
             sessionType: 'resetPassword',
-            encryptSession: true
+            encryptSession: true,
+            storeSession: false,
         });
         // Send the email
         await sendEmail({
@@ -46,6 +47,7 @@ export async function POST(req : NextRequest) {
         return NextResponse.json({success: "Email sent"}, {status:200})
 
     } catch (error) {
+        console.log(error)
         return NextResponse.json({error: "Internal Server Error"}, {status:500})
     }
 }

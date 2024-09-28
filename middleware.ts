@@ -15,15 +15,6 @@ export default async function middleware(req: NextRequest) {
   const sessionCookie = req.cookies.getAll();
   console.log(sessionCookie);
   const NEXTAUTH_URL = process.env.NEXTAUTH_URL;
-  if (isProtectedRoute) {
-    // Check if the user is authenticated
-    if (sessionCookie.length === 0) {
-      return NextResponse.redirect(NEXTAUTH_URL + "/sign-in");
-    }
-  } else if (isPublicRoute) {
-    // 
-    NextResponse.next();
-  }
 
 }
 

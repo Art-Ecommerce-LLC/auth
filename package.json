@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@heroicons/react": "^1.0.6",
     "@hookform/resolvers": "^3.9.0",
     "@nextui-org/react": "^2.4.8",
     "@nextui-org/spinner": "^2.0.34",
@@ -27,7 +28,7 @@
     "clsx": "^2.1.1",
     "cuid": "^3.0.0",
     "dotenv": "^16.4.5",
-    "framer-motion": "^11.8.0",
+    "framer-motion": "^11.9.0",
     "input-otp": "^1.2.4",
     "jose": "^5.9.2",
     "lucide-react": "^0.441.0",

@@ -43,7 +43,16 @@ export async function POST(req: NextRequest) {
         
         // Check if email is verified
         if (!existingUser.emailVerified) {
-            return NextResponse.json({error:"Email not verified"}, {status:201})
+            const session = await manageSession({
+                userId: existingUser.id,
+                sessionType: 'verifyEmail'
+            })
+            sendEmail({ 
+                to: existingUser.email,
+                type: "verifyEmail",
+                session: session.token,
+            });
+            return NextResponse.json({error: "Email not verified"}, {status: 401})
         }
 
         // Create a new session that isn't mfa verified
