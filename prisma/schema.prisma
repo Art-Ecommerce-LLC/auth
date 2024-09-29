@@ -24,6 +24,7 @@ model User {
   resetPasswords ResetPassword?
   emailVerifications EmailVerification?
   otps OTP?
+  renderDeploys RenderDeploys[]
   @@map("users")
 
 }
@@ -84,4 +85,16 @@ model EmailVerification {
   user        User     @relation(fields: [userId], references: [id])
 
   @@map("email_verifications")
+}
+
+
+model RenderDeploys {
+  id          String   @id @default(cuid()) @unique
+  userId      String   @map("user_id") @unique
+  serviceId   String   @map("service_id") @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id])
+  @@map("render_deploys")
 }

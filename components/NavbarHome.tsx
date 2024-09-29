@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import {Navbar, NavbarBrand, NavbarMenuToggle, NavbarMenuItem, NavbarMenu, NavbarContent, NavbarItem, Link, Button} from "@nextui-org/react";
+import {Navbar, NavbarBrand, NavbarMenuToggle, NavbarMenuItem, NavbarMenu, NavbarContent, NavbarItem, Link, Button, menu} from "@nextui-org/react";
 import {AcmeLogo} from "./AcmeLogo";
 import { useSignOut } from "@/app/authtool/access/signOut"; // Import the custom hook
 import { useRouter } from "next/navigation";
@@ -15,14 +15,20 @@ export default function NavbarHome({mfaVerified}: {mfaVerified : boolean}) {
     router.push('/dashboard');
   }
 
-  const menuItems = [
-    "About",    
-    "Docs",
-    "Pricing",
-    "Login",
-    "Sign Up",
-    "Sign Out",
-  ];
+  const menuItems : Record<string,string> = {
+    "About" : "/about",    
+    "Docs" : "/docs",
+    "Pricing" : "/pricing",
+    "Login" : "/sign-in",
+    "Sign Up"  : "/sign-up",
+};  
+
+  // take ou tlogin and signup if mfaVerified and add signout
+  if (mfaVerified) {
+    // remove login and signup
+    delete menuItems["Login"];
+    delete menuItems["Sign Up"];
+  }
 
   return (
     <Navbar
@@ -86,43 +92,24 @@ export default function NavbarHome({mfaVerified}: {mfaVerified : boolean}) {
       </NavbarContent>
 
       <NavbarMenu>
-        {menuItems.map((item, index) => (
+        {Object.keys(menuItems).map((item: string, index: number) => (
           <NavbarMenuItem key={`${item}-${index}`}>
-            <Link
-              className="w-full"
-              href="#"
-              size="lg"
-            >
+            { item === "Sign Up" ? (
+            <Link className="w-full" href={menuItems[item]} style={{ color: "green" }} size="lg">
+              Sign Up
+            </Link>
+          ) : (
+            <Link className="w-full" href={menuItems[item]} size="lg">
               {item}
             </Link>
-            
-          </NavbarMenuItem>
+          )}
+        </NavbarMenuItem>
         ))}
-        {/* Sign Out link in mobile menu */}
-        {mfaVerified ? (
-          <NavbarMenuItem>
-            <Button className="w-full text-red-500" onClick={signOut}>
-              Sign Out
-            </Button>
-          </NavbarMenuItem>
-        ) : (
-          <div>
-            <NavbarMenuItem>
-              <Link href="/sign-in" className="w-full" color="primary">
-                Log In
-              </Link>
-            </NavbarMenuItem>
-            <NavbarMenuItem>
-              <Link href="/sign-up" className="w-full" color="success">
-                Sign Up
-              </Link>
-            </NavbarMenuItem>
-          </div>
-        )}
-        {/* Sign Out and Dashboard buttons in mobile menu */}
-         {/* Dashboard button at the bottom of the mobile menu */}
          {mfaVerified && (
           <div className="absolute bottom-4 left-0 w-full px-4">
+            <Button color="warning" className="w-full mb-2" variant="ghost" onClick={signOut}>
+              Sign Out
+            </Button>
             <Button color="success" className="w-full" variant="solid" onClick={redirectDashboard}>
               Dashboard
             </Button>

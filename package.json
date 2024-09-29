@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@api/render-api": "file:.api/apis/render-api",
     "@heroicons/react": "^1.0.6",
     "@hookform/resolvers": "^3.9.0",
     "@nextui-org/react": "^2.4.8",
