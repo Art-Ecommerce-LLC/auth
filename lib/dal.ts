@@ -260,18 +260,20 @@ export const getVercelProjects = cache(async () => {
         const data = await result.json();
         // Ensure that we return an empty array if no projects are found or an error occurs
         console.log(data.projects)
-        for (const project of data.projects) {  
-            console.log(project.crons.deploymentId)   
-            const deployResult = await fetch(`https://api.vercel.com/v13/deployments/${project.crons.deploymentId}`, {
-                "headers": {
-                    "Authorization": "Bearer " + vercelApiKey
-                },
-                "method": "get"
-            });
-            const deployData = await deployResult.json();
-            console.log(deployData)
-        }
-        return data.projects || [];
+        // for (const project of data.projects) {  
+        //     console.log(project.crons.deploymentId)   
+        //     const deployResult = await fetch(`https://api.vercel.com/v13/deployments/${project.crons.deploymentId}`, {
+        //         "headers": {
+        //             "Authorization": "Bearer " + vercelApiKey
+        //         },
+        //         "method": "get"
+        //     });
+        //     const deployData = await deployResult.json();
+        //     console.log(deployData)
+
+
+        // }
+        // return data.projects || [];
     } catch (error) {
         console.error("Error fetching Vercel projects:", error);
         return []; // Return an empty array if there's an error

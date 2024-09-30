@@ -17,7 +17,7 @@ export default async function Dashboard() {
   if ('role' in session.user && session.user.role === 'ADMIN') {
     return <div>
               <NavbarDashServer />
-              <AdminDashboard user={session.user} renderProjects={renderProjects} vercelProjects={vercelProjects} />
+              <AdminDashboard user={session.user} renderProjects={renderProjects} />
           </div>
   } else if ('role' in session.user && session.user.role === 'USER') {
     return <div>

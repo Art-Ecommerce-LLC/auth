@@ -29,11 +29,16 @@ const statusIcons: Record<
   created: <ClockIcon className="h-6 w-6 text-gray-500" />,
 };
 
-interface RenderProjectStatusWidgetProps {
+const Platforms: Record<"Render" | "Vercel", string> = {
+  Render: 'Render',
+  Vercel: 'Vercel',
+};
+
+interface ProjectStatusWidgetProps {
   projects: RenderProject[];
 }
 
-export default function RenderProjectStatusWidget({ projects }: RenderProjectStatusWidgetProps) {
+export default function ProjectStatusWidget({ projects }: ProjectStatusWidgetProps) {
   return (
     <div className="bg-white shadow-md rounded-lg p-6">
     <div className='mb-3'>
@@ -43,6 +48,7 @@ export default function RenderProjectStatusWidget({ projects }: RenderProjectSta
         <TableHeader>
           <TableRow>
             <TableHead className="w-[100px]">Project Name</TableHead>
+            <TableHead>Platform</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Commit</TableHead>
             <TableHead>Last Updated</TableHead>
