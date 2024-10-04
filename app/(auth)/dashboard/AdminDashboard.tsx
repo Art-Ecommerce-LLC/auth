@@ -1,25 +1,25 @@
 "use client";
 
-import { User, RenderProjects } from "@/models/models";
-import ProjectStatusWidget from "./widgets/ProjectStatusWidget";
-
+import { User } from "@/models/models";
+import CreateEventWidget from "./widgets/CreateEventWidget";
+import TimeSlotWidget from "./widgets/TimeSlotWidget";
 
 interface AdminDashboardProps {
   user: User;
-  renderProjects: RenderProjects;
   // vercelProjects: VercelProjects; // Pass Vercel projects here as well
 }
 
-export default function AdminDashboard({ user, renderProjects }: AdminDashboardProps) {
+export default function AdminDashboard({ user }: AdminDashboardProps) {
   return (
     <div className="flex h-screen">
       {/* Main Content */}
       <div className="flex-1 bg-gray-100 p-6">
         {/* Widget grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <ProjectStatusWidget projects={renderProjects} />
-          {/* <VercelProjectStatusWidget projects={vercelProjects} /> */}
-          {/* Add more widgets here */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+          {/* Create Event Widget */}
+          <CreateEventWidget />
+          {/* Time Slot Widget */}
+          <TimeSlotWidget />
         </div>
       </div>
     </div>
