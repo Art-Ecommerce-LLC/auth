@@ -6,7 +6,8 @@ export default function TimeSlotWidget() {
 
     return (
         <>
-            <TimeSlotBookingForm />
+            {/* <TimeSlotBookingForm /> */}
+            <p> later timeSlotId</p>
         </>
     );
 }

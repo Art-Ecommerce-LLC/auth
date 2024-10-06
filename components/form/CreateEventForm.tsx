@@ -68,7 +68,7 @@ const CreateEventForm: React.FC = () => {
 
     // Convert the time slots to the selected timezone
     const formattedTimeSlots = timeSlots.map((slot) => {
-      const fullDateTime = `${date}T${slot.time}`;
+      const fullDateTime = `${slot.time}`;
       return { time: fullDateTime };
     });
 
@@ -130,12 +130,12 @@ const CreateEventForm: React.FC = () => {
             <FormControl isInvalid={!!errors.timezone}>
               <FormLabel>Timezone</FormLabel>
               <Select {...register('timezone')}>
-                <option value="EST">EST (Eastern Standard Time)</option>
-                <option value="CST">CST (Central Standard Time)</option>
-                <option value="MST">MST (Mountain Standard Time)</option>
-                <option value="PST">PST (Pacific Standard Time)</option>
-                <option value="AKST">AKST (Alaska Standard Time)</option>
-                <option value="HST">HST (Hawaii Standard Time)</option>
+                <option value="ET">ET (Eastern Time)</option>
+                <option value="CT">CT (Central Time)</option>
+                <option value="MT">MT (Mountain Time)</option>
+                <option value="PT">PT (Pacific Time)</option>
+                <option value="AKT">AKT (Alaska Time)</option>
+                <option value="HT">HT (Hawaii Time)</option>
               </Select>
               {errors.timezone && <Box color="red.500">{errors.timezone.message}</Box>}
             </FormControl>
