@@ -155,7 +155,7 @@ export function OTPForm() {
             />
         <Button 
         type="submit" 
-        variant="success" 
+        variant="outline" 
         className="w-80 mt-3" 
         disabled={submitLoading}>
         {submitLoading ? "Submitting..." : "Submit"}
