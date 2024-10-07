@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest} from 'next/server';
-import prisma from '@/lib/db';
+import db from '@/lib/db';
 // zod schema
 import { z } from 'zod';
 import { getSession } from '@/lib/dal';
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Store the event in the database
-  await prisma.event.create({
+  await db.event.create({
     data: {
       title,
       description,
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'User not found' }, { status: 404 });
   }
 
-  const user = await prisma.user.findUnique({
+  const user = await db.user.findUnique({
     where: { id: userId },
     select: { googleToken: true },
   });
@@ -87,13 +87,29 @@ export async function POST(request: NextRequest) {
         timeZone: timezoneMap[timezone],
       },
       end: {
-        dateTime: eventDate.toISOString(),
+        // Add 30 minutes to the start date for the end time
+        dateTime: new Date(eventDate.getTime() + 30 * 60000).toISOString(),
         timeZone: timezoneMap[timezone],
       },
+      conferenceData: {
+        createRequest: {
+          requestId: `meet-${Date.now()}`, // Unique ID for the request
+          conferenceSolutionKey: {
+            type: 'hangoutsMeet', // This specifies that it's a Google Meet event
+          },
+        },
+      },
     },
+    conferenceDataVersion: 1, // Enable conference data for Google Meet
   };
-
-  await calendar.events.insert(eventRequest);
+  const newGoogleEvent = await calendar.events.insert(eventRequest);
+  // Store the Google Event ID in the database
+  await db.event.update({
+    where: { date: eventDate },
+    data: {
+      googleEventId: newGoogleEvent.data.id
+    },
+  });
 
   return NextResponse.json({ message: 'Event created' }, { status: 201 });
  
