@@ -14,7 +14,7 @@ const REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI!;
 
 const oauth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
 
-export default async function POST(request: NextRequest) {
+export async function POST(request: NextRequest) {
     try {
         // Parse the request body and validate
         const body = await request.json();
