@@ -3,7 +3,7 @@
 import { Button} from "@/components/ui/button";
 import { useSignOut } from "@/app/authtool/access/signOut";
 
-export default async function SignOutPage() {
+export default function SignOutPage() {
   const { signOut } = useSignOut();
   return (
     <main className="flex flex-col min-h-screen w-full items-center justify-center bg-primary text-primary-foreground">

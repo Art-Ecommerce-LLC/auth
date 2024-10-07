@@ -59,7 +59,15 @@ export async function POST(request: NextRequest) {
   });
 
   // Decrypt the user's access and refresh tokens
-  const decryptedGoogleTokens = await decrypt(user?.googleToken!);
+  if (!user) {
+    return NextResponse.json({ error: 'User not found' }, { status: 404 });
+  }
+
+  if (!user.googleToken) {
+    return NextResponse.json({ error: 'User not found' }, { status: 404 });
+  }
+
+  const decryptedGoogleTokens = await decrypt(user.googleToken);
 
   oauth2Client.setCredentials({
     access_token: decryptedGoogleTokens.accessToken,

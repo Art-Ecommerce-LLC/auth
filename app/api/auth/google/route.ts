@@ -1,7 +1,6 @@
 // app/api/auth/google/route.ts
 import { google } from 'googleapis';
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 
 // Load environment variables
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
