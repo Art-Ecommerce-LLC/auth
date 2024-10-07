@@ -42,8 +42,11 @@ export async function GET() {
   const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
 
   try {
+
+    // fetch the differnet calendars and log their Ids so we can use them later
+
     const res = await calendar.events.list({
-      calendarId: 'primary',
+      calendarId: "055f86c75a99c3985ff91566fe3705198573df32246426b79c8636e6af4b657a@group.calendar.google.com",
       timeMin: new Date().toISOString(),
       maxResults: 10,
       singleEvents: true,
@@ -52,6 +55,7 @@ export async function GET() {
 
     const events = res.data.items;
 
+    console.log(events);
     if (!events || events.length === 0) {
       return NextResponse.json({ message: 'No upcoming events found.' });
     }

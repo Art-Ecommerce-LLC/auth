@@ -37,16 +37,6 @@ export async function POST(request: NextRequest) {
     throw new Error('Event date must be in the future');
   }
 
-  // Store the event in the database
-  await db.event.create({
-    data: {
-      title,
-      description,
-      date: eventDate,
-    },
-  });
-
- // Get session and query the googletokens to access the google calendar
   const session = await getSession();
   const userId = session?.session?.userId;
   if (!userId) {
@@ -55,8 +45,27 @@ export async function POST(request: NextRequest) {
 
   const user = await db.user.findUnique({
     where: { id: userId },
-    select: { googleToken: true },
+    select: { googleToken: true, serviceToken: true },
   });
+
+  if (!user) {
+    return NextResponse.json({ error: 'User not found' }, { status: 404 });
+  }
+
+  // Store the event in the database
+  await db.event.create({
+    data: {
+      title,
+      description,
+      date: eventDate,
+      serviceToken: user.serviceToken,
+    },
+  });
+
+ // Get session and query the googletokens to access the google calendar
+
+
+
 
   // Decrypt the user's access and refresh tokens
   if (!user) {
@@ -78,7 +87,7 @@ export async function POST(request: NextRequest) {
 
   // Create an event in the user's Google Calendar
   const eventRequest = {
-    calendarId: 'primary',
+    calendarId: '055f86c75a99c3985ff91566fe3705198573df32246426b79c8636e6af4b657a@group.calendar.google.com',
     resource: {
       summary: title,
       description,

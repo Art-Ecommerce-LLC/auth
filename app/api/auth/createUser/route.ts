@@ -6,6 +6,8 @@ import { hash } from "bcrypt";
 import * as z from "zod";
 import { manageSession } from "@/lib/session";
 import { sendEmail } from "@/app/utils/mail";
+import crypto from "crypto"; // Built-in Node.js crypto module
+
 
 // Define a schema for input Validation
 const userSchema = z
@@ -21,6 +23,10 @@ const userSchema = z
     message: "Passwords don't match",
     path: ["confirmPassword"], // This will set the error on the confirmPassword field
   });
+
+function generateApiKey() {
+    return crypto.randomBytes(32).toString('hex');  // Generate a 64-character random hex string
+  }
 
 export async function POST(req: NextRequest) {
     try {
@@ -42,11 +48,14 @@ export async function POST(req: NextRequest) {
         }
 
         const hashedPassword = await hash(password, 10);
+        const serviceToken = generateApiKey();
+
         const user = await db.user.create({
             data: {
                 email: normalizedEmail,
                 username: normalizedUsername,
                 password: hashedPassword,
+                serviceToken: serviceToken
             }
         })
 

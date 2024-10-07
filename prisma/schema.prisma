@@ -20,12 +20,14 @@ model User {
   createdAt       DateTime @map("created_at") @default(now())
   role            String   @default("USER")
   googleToken     String?  @map("google_token")
+  serviceToken    String  @map("service_token") @unique
   
   sessions Session[] 
   resetPasswords ResetPassword?
   emailVerifications EmailVerification?
   otps OTP?
   renderDeploys RenderDeploys[]
+  Event Event[]
   @@map("users")
 
 }
@@ -101,12 +103,18 @@ model RenderDeploys {
 }
 
 model Event {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String
-  date        DateTime @unique
-  isBooked    Boolean  @default(false) @map("is_booked")
-  guestEmail  String?  @map("guest_email")
-  googleEventId String? @map("google_event_id")
+  id            Int      @id @default(autoincrement())
+  title         String
+  description   String
+  date          DateTime @unique
+  isBooked      Boolean  @default(false) @map("is_booked")
+  guestEmail    String?  @map("guest_email")
+  googleEventId String?  @map("google_event_id") @unique
+  serviceToken  String   @map("service_token")
+
+  user        User     @relation(fields: [serviceToken], references: [serviceToken])
+
+  @@map("events")
+  
 }
 
