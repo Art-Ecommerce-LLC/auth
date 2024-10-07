@@ -34,7 +34,6 @@ export async function POST(req : NextRequest) {
         const session = await manageSession({
             userId: user.id,
             sessionType: 'resetPassword',
-            encryptSession: true,
             storeSession: false,
         });
         // Send the email

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import {Navbar, NavbarBrand, NavbarMenuToggle, NavbarMenuItem, NavbarMenu, NavbarContent, NavbarItem, Link, Button, menu} from "@nextui-org/react";
+import {Navbar, NavbarBrand, NavbarMenuToggle, NavbarMenuItem, NavbarMenu, NavbarContent, NavbarItem, Link, Button} from "@nextui-org/react";
 import {AcmeLogo} from "./AcmeLogo";
 import { useSignOut } from "@/app/authtool/access/signOut"; // Import the custom hook
 import { useRouter } from "next/navigation";

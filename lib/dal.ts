@@ -4,7 +4,7 @@ import { cookies } from 'next/headers'
 import { decrypt } from './encrypt'
 import { cache } from 'react'
 import db from './db'
-import renderApi from '@api/render-api';
+// import renderApi from '@api/render-api';
 
 
 
@@ -39,8 +39,10 @@ export const getUser = cache(async () => {
             return { isAuth: false}
         }
         
-        const { password , email, updatedAt, createdAt,  ...rest } = user
-        return rest
+        // eslint-disable-next-line no-unused-vars
+        const { password, email, updatedAt, createdAt, ...rest } = user;
+        return rest; // Return the modified user object
+
     } catch (error) {
         return { isAuth: false}
     }

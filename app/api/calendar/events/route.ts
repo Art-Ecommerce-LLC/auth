@@ -1,7 +1,6 @@
 // app/api/calendar/events/route.ts
 import { google } from 'googleapis';
 import { NextResponse } from 'next/server';
-import { NextRequest } from 'next/server';
 import { getSession } from '@/lib/dal';
 import { decrypt } from '@/lib/encrypt';
 import db from '@/lib/db';
@@ -12,7 +11,7 @@ const REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI!;
 
 const oauth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   // For simplicity, tokens are hard-coded here, but in production, you should retrieve them from a secure database.
     const session = await getSession();
     const userId = session?.session?.userId;

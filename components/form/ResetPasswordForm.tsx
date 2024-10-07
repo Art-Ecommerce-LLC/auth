@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Spinner } from "@nextui-org/spinner";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { set, z } from "zod"
+import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import {
   Form,

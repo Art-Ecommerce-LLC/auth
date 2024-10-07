@@ -52,8 +52,7 @@ export async function POST(req: NextRequest) {
 
         const session = await manageSession({
               userId: user.id, 
-              sessionType: 'verifyEmail', 
-              encryptSession: true
+              sessionType: 'verifyEmail'
         });
 
         await sendEmail({

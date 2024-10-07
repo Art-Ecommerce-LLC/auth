@@ -15,24 +15,27 @@ export async function GET(request: NextRequest) {
         // Grab the encrypted session data from the sessionId url parameter
         const { searchParams } = new URL(request.url);
         const session = searchParams.get('verifyEmail');
+        
+        // Validate the session
+        const { session: sessionData } = jwtSchema.parse({ session });
 
-        if (!session) {
+        if (!sessionData) {
             return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/404`)
         }
 
-        const sessionCookie = await decrypt(session);
-        const sessionData = await db.emailVerification.findUnique({
+        const sessionCookie = await decrypt(sessionData);
+        const sessionDBData = await db.emailVerification.findUnique({
             where: { userId: sessionCookie.userId}
         })
 
         
-        if (!sessionData) {
+        if (!sessionDBData) {
             return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/404`)
         }
 
 
         // Compare the token to the token in the databse with bcrypt
-        const isTokenValid = await compare(sessionCookie.token, sessionData.token);
+        const isTokenValid = await compare(sessionCookie.token, sessionDBData.token);
 
         if (!isTokenValid) {
             console.log('Token is invalid')
@@ -40,7 +43,7 @@ export async function GET(request: NextRequest) {
         }
 
         const user = await db.user.findUnique({
-            where: { id: sessionData.userId }
+            where: { id: sessionDBData.userId }
         })
 
         // Check if the user exists

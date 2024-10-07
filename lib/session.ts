@@ -32,12 +32,11 @@ Promise<{ token: string; expiresAt: Date, userId: string } |
   const newSessionToken = createId();
   const existingToken = await hash(newSessionToken, 10);
 
-  let token: string;
   let hashedToken: string | null = null;
   let otp: string;
   let hashedOtp: string | null = null;
 
-  token = createId();
+  const token = createId();
   hashedToken = await hash(token, 10);
 
   switch (sessionType) {
@@ -165,14 +164,12 @@ Promise<{ token: string; expiresAt: Date, userId: string } |
 export async function manageSession({
   userId,
   sessionType,
-  encryptSession = true,
   mfaVerified = false,
   sessionId = '',
   storeSession = true
 }: {
   userId: string;
   sessionType: string;
-  encryptSession?: boolean; // Optional
   mfaVerified?: boolean;
   sessionId?: string // Optional
   storeSession?: boolean; // Optional

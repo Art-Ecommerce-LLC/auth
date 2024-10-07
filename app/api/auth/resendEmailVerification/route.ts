@@ -51,7 +51,7 @@ export async function POST(request : NextRequest) {
         // Delete the previous session and make a new one
 
         await deleteSession({ userId: user.id, cookieNames: ['verifyEmail'], request})
-        const newSession = await manageSession({ userId: user.id, sessionType: 'verifyEmail', encryptSession: true })
+        const newSession = await manageSession({ userId: user.id, sessionType: 'verifyEmail'})
 
         if (!newSession) {
             return NextResponse.json({ error: "Session creation failed" }, { status: 500 })

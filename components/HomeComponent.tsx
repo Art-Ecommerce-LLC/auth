@@ -97,7 +97,7 @@ export default function HomeComponent() {
               whileHover={{ scale: 1.05 }}
             >
               <p>
-                "Developer Hub has revolutionized the way our team works together. It's the perfect tool for keeping everyone on track!"
+              &quot;Developer Hub has revolutionized the way our team works together. It&apos;s the perfect tool for keeping everyone on track!&quot;
               </p>
               <p className="mt-4 text-sm font-semibold">- Jane Doe, Senior Developer</p>
             </motion.div>
@@ -106,7 +106,7 @@ export default function HomeComponent() {
               whileHover={{ scale: 1.05 }}
             >
               <p>
-                "The real-time collaboration features are top-notch. We've seen a 30% increase in our project delivery speed!"
+              &quot;The real-time collaboration features are top-notch. We&apos;ve seen a 30% increase in our project delivery speed!&quot;
               </p>
               <p className="mt-4 text-sm font-semibold">- John Smith, Project Manager</p>
             </motion.div>
@@ -115,7 +115,7 @@ export default function HomeComponent() {
               whileHover={{ scale: 1.05 }}
             >
               <p>
-                "I love the intuitive design and the secure environment. It helps us work better without worrying about security."
+              &quot;I love the intuitive design and the secure environment. It helps us work better without worrying about security.&quot;
               </p>
               <p className="mt-4 text-sm font-semibold">- Sarah Lee, Software Engineer</p>
             </motion.div>
