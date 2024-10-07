@@ -3,6 +3,7 @@ import { google } from 'googleapis';
 import { NextResponse } from 'next/server';
 import { NextRequest } from 'next/server';
 import db from '@/lib/db'
+import{ encrypt } from '@/lib/encrypt' 
 
 // Load environment variables
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
@@ -35,13 +36,17 @@ export async function GET(request: NextRequest) {
     if (!userInfo.email) {
       return NextResponse.json({ error: 'Failed to retrieve user info' }, { status: 500 });
     }
-    // store the user's info in the database
+    if (!accessToken || !refreshToken) {
+      return NextResponse.json({ error: 'Failed to retrieve tokens' }, { status: 500 });
+    }
+    // store the encrypted user's info in the database
+    // Encrypt thhe user's access token and refresh token before storing them in the database
+    const encryptedGoogleTokens = await encrypt({accessToken, refreshToken});
 
     await db.user.update({
       where: { email: userInfo.email },
       data: {
-        accessToken,
-        refreshToken,
+        googleToken: encryptedGoogleTokens,
       },
     });
 

@@ -26,7 +26,7 @@ export async function decrypt(encryptedPayload: string): Promise<Record<string,s
     const decodedPayload = new TextDecoder().decode(plaintext);
 
     const payload = JSON.parse(decodedPayload);
-    if (new Date(payload.expiresAt) < new Date(Date.now())){
+    if (payload.expiresAt && new Date(payload.expiresAt) < new Date(Date.now())){
       throw new Error('Token expired');
     }
 

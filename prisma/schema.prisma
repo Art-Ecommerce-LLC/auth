@@ -19,8 +19,7 @@ model User {
   updatedAt       DateTime @map("updated_at") @updatedAt
   createdAt       DateTime @map("created_at") @default(now())
   role            String   @default("USER")
-  accessToken     String?
-  refreshToken    String?
+  googleToken     String?  @map("google_token")
   
   sessions Session[] 
   resetPasswords ResetPassword?

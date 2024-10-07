@@ -3,6 +3,7 @@ import { google } from 'googleapis';
 import { NextResponse } from 'next/server';
 import { NextRequest } from 'next/server';
 import { getSession } from '@/lib/dal';
+import { decrypt } from '@/lib/encrypt';
 import db from '@/lib/db';
 // Load environment variables
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
@@ -23,17 +24,20 @@ export async function GET(request: NextRequest) {
     // Use user ID to retrieve access and refresh tokens from the database
     const user = await db.user.findUnique({
       where: { id: userId },
-      select: { accessToken: true, refreshToken: true },
+      select: { googleToken: true },
     });
 
-    if (!user) {
+    if (!user?.googleToken) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    // Decrypt the user's access and refresh tokens
+    const decryptedGoogleTokens = await decrypt(user.googleToken);
+
 
   oauth2Client.setCredentials({
-    access_token: user.accessToken,
-    refresh_token: user.refreshToken,
+    access_token: decryptedGoogleTokens.accessToken,
+    refresh_token: decryptedGoogleTokens.refreshToken,
   });
 
   const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
