@@ -3,6 +3,8 @@
 import { User } from "@/models/models";
 import CreateEventWidget from "./widgets/CreateEventWidget";
 import TimeSlotWidget from "./widgets/TimeSlotWidget";
+import CalendarWidget from "./widgets/CalendarWidget";
+import SignInButton from "@/components/SignInButton";
 
 interface AdminDashboardProps {
   user: User;
@@ -17,6 +19,8 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
         {/* Widget grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
           {/* Create Event Widget */}
+          {/* <SignInButton user={user}/> */}
+          <CalendarWidget />
           <CreateEventWidget />
           {/* Time Slot Widget */}
           <TimeSlotWidget />

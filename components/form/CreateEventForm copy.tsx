@@ -58,10 +58,15 @@ export default function CreateEventForm() {
       defaultValues: {
         title: "",
         description: "",
-        dateTime: new Date(),
+        dateTime: new Date(new Date().setHours(0, 0, 0, 0)),
         timezone: "",
       },
     })
+
+    async function GoogleSignIn() {
+      // Redirect to your backend API route that initiates the Google OAuth flow
+      window.location.href = '/api/auth/google';
+    }
    
     // 2. Define a submit handler.
     async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -81,6 +86,7 @@ export default function CreateEventForm() {
         if (!response.ok) {
           throw new Error("Something went wrong")
         } 
+        
         toast({
           variant: "success",
           description: "Event created successfully",
@@ -108,6 +114,12 @@ export default function CreateEventForm() {
         </div>
       )}
       <h1 className="text-2xl font-bold">Create Event</h1>
+        {/* Connect google */}
+        <div className="flex items-center space-x-2">
+          <Button variant="outline" className="text-black" onClick={GoogleSignIn}>
+            Connect Google Calendar
+          </Button>
+        </div>
         <Form {...form}>
           <form 
           onSubmit={form.handleSubmit(onSubmit)} 

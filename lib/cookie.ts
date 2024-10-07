@@ -25,7 +25,6 @@ export async function createCookie(name: string, value: string, expires: Date) {
         secure: isProduction,
         expires: expires,
         maxAge: expires.getTime() - Date.now(),
-        sameSite: 'strict',
         path : '/'
       });
       break;

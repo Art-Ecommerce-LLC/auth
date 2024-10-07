@@ -11,6 +11,7 @@ interface TimePickerDemoProps {
 }
  
 export function TimePickerDemo({ date, setDate }: TimePickerDemoProps) {
+
   const minuteRef = React.useRef<HTMLInputElement>(null);
   const hourRef = React.useRef<HTMLInputElement>(null);
   const secondRef = React.useRef<HTMLInputElement>(null);
@@ -36,7 +37,7 @@ export function TimePickerDemo({ date, setDate }: TimePickerDemoProps) {
         <TimePickerInput
           picker="minutes"
           date={date}
-          setDate={setDate}
+          setDate={setDate => setDate}
           ref={minuteRef}
           onLeftFocus={() => hourRef.current?.focus()}
           onRightFocus={() => secondRef.current?.focus()}
