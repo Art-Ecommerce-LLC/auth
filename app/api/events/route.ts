@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { getSession } from '@/lib/dal';
 import { decrypt } from '@/lib/encrypt';
 import { google } from 'googleapis';
+import { DateTime } from 'luxon';
 
 const schema = z.object({
   title: z.string(),
@@ -31,9 +32,12 @@ export async function POST(request: NextRequest) {
   try {
   const body = await request.json(); 
   const { title, description, dateTime, timezone } = schema.parse(body);
-  const eventDate = new Date(dateTime);
+  if (!timezoneMap[timezone]) {
+    return NextResponse.json({ error: 'Invalid timezone' }, { status: 400 });
+  }
+  const eventDate = DateTime.fromISO(dateTime, { zone: timezoneMap[timezone] }).toUTC();
   
-  if (eventDate < new Date()) {
+  if (eventDate < DateTime.now().toUTC()) {
     throw new Error('Event date must be in the future');
   }
 
@@ -57,7 +61,7 @@ export async function POST(request: NextRequest) {
     data: {
       title,
       description,
-      date: eventDate,
+      date: eventDate.toJSDate(),
       serviceToken: user.serviceToken,
     },
   });
@@ -88,19 +92,19 @@ export async function POST(request: NextRequest) {
   // Create an event in the user's Google Calendar
   console.log('timezone', timezone);
   console.log('timezoneMap', timezoneMap[timezone]);
-  console.log('eventDate', eventDate.toISOString());
+  console.log('eventDate', eventDate.toISO());
   const eventRequest = {
     calendarId: '055f86c75a99c3985ff91566fe3705198573df32246426b79c8636e6af4b657a@group.calendar.google.com',
     resource: {
       summary: title,
       description,
       start: {
-        dateTime: eventDate.toISOString(),
+        dateTime: eventDate.toISO(),
         timeZone: timezoneMap[timezone],
       },
       end: {
         // Add 30 minutes to the start date for the end time
-        dateTime: new Date(eventDate.getTime() + 30 * 60000).toISOString(),
+        dateTime: eventDate.plus({ minutes: 30 }).toISO(),
         timeZone: timezoneMap[timezone],
       },
       conferenceData: {
@@ -117,7 +121,7 @@ export async function POST(request: NextRequest) {
   const newGoogleEvent = await calendar.events.insert(eventRequest);
   // Store the Google Event ID in the database
   await db.event.update({
-    where: { date: eventDate },
+    where: { date: eventDate.toJSDate() },
     data: {
       googleEventId: newGoogleEvent.data.id
     },
