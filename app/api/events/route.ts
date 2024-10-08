@@ -109,12 +109,12 @@ export async function POST(request: NextRequest) {
       description,
       start: {
         dateTime: eventDate.toISO(),
-        timeZone: timezoneMap[timezone],
+        // timeZone: timezoneMap[timezone],
       },
       end: {
         // Add 30 minutes to the start date for the end time
         dateTime: eventDate.plus({ minutes: 30 }).toISO(),
-        timeZone: timezoneMap[timezone],
+        // timeZone: timezoneMap[timezone],
       },
       conferenceData: {
         createRequest: {
