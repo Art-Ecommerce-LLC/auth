@@ -73,11 +73,14 @@ export async function POST(request: NextRequest) {
                 });
 
                 if (eventInDb) {
+                    const startUtc = new Date(event.start?.dateTime!).toISOString();
+                    const endUtc = new Date(event.end?.dateTime!).toISOString();
+
                     availableEvents.push({
                         id: event.id,
                         summary: event.summary,
-                        start: event.start,
-                        end: event.end
+                        start: startUtc, // Return UTC time
+                        end: endUtc, // Return UTC time
                     });
                 }
             }
@@ -87,7 +90,7 @@ export async function POST(request: NextRequest) {
         if (availableEvents.length === 0) {
             return NextResponse.json({ message: "No available events found" }, { status: 200 });
         }
-
+        console.log(availableEvents);
         // Return the next available events
         return NextResponse.json({ events: availableEvents }, { status: 200 });
 
