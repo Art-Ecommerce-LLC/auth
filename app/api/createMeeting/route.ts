@@ -9,7 +9,8 @@ const schema = z.object({
     dateTime: z.string(),
     timezone: z.string(),
     guestEmail: z.string(),
-    serviceToken: z.string()
+    serviceToken: z.string(),
+    description: z.string()
 });
 
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
@@ -23,7 +24,7 @@ export async function POST(request : NextRequest) {
     // get the body of the request in a json
     try {
         const body = await request.json();
-        const { dateTime, timezone, guestEmail, serviceToken } = schema.parse(body);
+        const { dateTime, timezone, guestEmail, serviceToken, description } = schema.parse(body);
         
     
         // Check if the service token is valid
@@ -56,7 +57,8 @@ export async function POST(request : NextRequest) {
             },
             data: {
                 guestEmail: guestEmail,
-                isBooked: true
+                isBooked: true,
+                description: description
             }
         })
     
