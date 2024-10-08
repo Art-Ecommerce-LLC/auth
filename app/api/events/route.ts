@@ -19,12 +19,12 @@ const REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI!;
 const oauth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
 
 const timezoneMap : Record<string, string> = {
-  'ET': 'America/New_York',
-  'CT': 'America/Chicago',
-  'MT': 'America/Denver',
-  'PT': 'America/Los_Angeles',
-  'AKT': 'America/Anchorage',
-  'HAT': 'Pacific/Honolulu',
+  'et': 'America/New_York',
+  'ct': 'America/Chicago',
+  'mt': 'America/Denver',
+  'pt': 'America/Los_Angeles',
+  'akt': 'America/Anchorage',
+  'hat': 'Pacific/Honolulu',
 };
 
 export async function POST(request: NextRequest) {
