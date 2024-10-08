@@ -38,16 +38,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid timezone' }, { status: 400 });
   }
 
-  // Parse the date and time in the selected timezone
-  // Parse the date and time and set the timezone explicitly
-  let eventDate = DateTime.fromISO(dateTime);
-  eventDate = eventDate.setZone(selectedTimezone, { keepLocalTime: true }); // Set timezone to ET (e.g., America/New_York)
+  const date = new Date(dateTime);
+  const isoString = DateTime.fromJSDate(date).toISO({ includeOffset: true, suppressMilliseconds: true });
 
+  if (!isoString) {
+    return NextResponse.json({ error: 'Invalid date' }, { status: 400 });
+  }
 
+  const eventDate = DateTime.fromISO(isoString);
   if (eventDate < DateTime.now()) {
     return NextResponse.json({ error: 'Event date must be in the future' }, { status: 400 });
   }
-  console.log('eventDate', eventDate);
+
+
+  console.log('isoString', isoString);
 
 
   const session = await getSession();
@@ -101,14 +105,14 @@ export async function POST(request: NextRequest) {
   // Create an event in the user's Google Calendar
   console.log('timezone', timezone);
   console.log('timezoneMap', timezoneMap[timezone]);
-  console.log('eventDate', eventDate.toISO());
+  console.log('isoString', isoString);
   const eventRequest = {
     calendarId: '055f86c75a99c3985ff91566fe3705198573df32246426b79c8636e6af4b657a@group.calendar.google.com',
     resource: {
       summary: title,
       description,
       start: {
-        dateTime: eventDate.toISO(),
+        dateTime: isoString,
         // timeZone: timezoneMap[timezone],
       },
       end: {
