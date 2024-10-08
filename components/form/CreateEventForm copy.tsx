@@ -214,12 +214,12 @@ export default function CreateEventForm() {
               <SelectContent>
                 <SelectGroup>
                   <SelectLabel>North America</SelectLabel>
-                  <SelectItem value="est">Eastern Time (ET)</SelectItem>
-                  <SelectItem value="cst">Central Time (CT)</SelectItem>
-                  <SelectItem value="mst">Mountain Time (MT)</SelectItem>
-                  <SelectItem value="pst">Pacific Time (PT)</SelectItem>
-                  <SelectItem value="akst">Alaska Time (AKT)</SelectItem>
-                  <SelectItem value="hst">Hawaii Time (HT)</SelectItem>
+                  <SelectItem value="et">Eastern Time (ET)</SelectItem>
+                  <SelectItem value="ct">Central Time (CT)</SelectItem>
+                  <SelectItem value="mt">Mountain Time (MT)</SelectItem>
+                  <SelectItem value="pt">Pacific Time (PT)</SelectItem>
+                  <SelectItem value="akt">Alaska Time (AKT)</SelectItem>
+                  <SelectItem value="ht">Hawaii Time (HT)</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
