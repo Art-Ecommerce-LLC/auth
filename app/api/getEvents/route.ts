@@ -72,9 +72,9 @@ export async function POST(request: NextRequest) {
                     }
                 });
 
-                if (eventInDb) {
-                    const startUtc = new Date(event.start?.dateTime!).toISOString();
-                    const endUtc = new Date(event.end?.dateTime!).toISOString();
+                if (eventInDb && event.start?.dateTime && event.end?.dateTime) {
+                    const startUtc = new Date(event.start.dateTime).toISOString();
+                    const endUtc = new Date(event.end.dateTime).toISOString();
 
                     availableEvents.push({
                         id: event.id,
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
             }
         }
         // test deploy
-        
+
 
         // If no available events, return an appropriate message
         if (availableEvents.length === 0) {
