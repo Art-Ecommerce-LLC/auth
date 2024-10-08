@@ -121,8 +121,9 @@ export async function POST(request : NextRequest) {
                 status: 'confirmed', // Optionally mark as confirmed
                 start: updatedStart, // Include start with timezone
                 end: updatedEnd, // Include end with timezone
+                description: description
             },
-
+            sendUpdates: 'all'
         });
         return NextResponse.json({"message": "Your Event Has Been Booked!"});
     } catch (error) {
