@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
         const eventsResponse = await calendar.events.list({
             calendarId: '055f86c75a99c3985ff91566fe3705198573df32246426b79c8636e6af4b657a@group.calendar.google.com', // Change this to the calendar ID if it's different
             timeMin: now, // Get events starting from the current time
-            maxResults: 10, // Limit to 10 upcoming events
+            maxResults: 100, // Limit to 10 upcoming events
             singleEvents: true,
             orderBy: 'startTime'
         });

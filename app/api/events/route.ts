@@ -32,14 +32,23 @@ export async function POST(request: NextRequest) {
   try {
   const body = await request.json(); 
   const { title, description, dateTime, timezone } = schema.parse(body);
-  if (!timezoneMap[timezone]) {
+  // Get the correct timezone from the map
+  const selectedTimezone = timezoneMap[timezone.toLowerCase()];
+  if (!selectedTimezone) {
     return NextResponse.json({ error: 'Invalid timezone' }, { status: 400 });
   }
-  const eventDate = DateTime.fromISO(dateTime, { zone: timezoneMap[timezone] }).toUTC();
-  
-  if (eventDate < DateTime.now().toUTC()) {
-    throw new Error('Event date must be in the future');
+
+  // Parse the date and time in the selected timezone
+  // Parse the date and time and set the timezone explicitly
+  let eventDate = DateTime.fromISO(dateTime);
+  eventDate = eventDate.setZone(selectedTimezone, { keepLocalTime: true }); // Set timezone to ET (e.g., America/New_York)
+
+
+  if (eventDate < DateTime.now()) {
+    return NextResponse.json({ error: 'Event date must be in the future' }, { status: 400 });
   }
+  console.log('eventDate', eventDate);
+
 
   const session = await getSession();
   const userId = session?.session?.userId;
