@@ -38,7 +38,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-    
+import { fromZonedTime } from 'date-fns-tz'
+
 const formSchema = z.object({
     title: z.string().min(1, 'Title is required'),
     description: z.string().min(1, 'Description is required'),
@@ -72,16 +73,23 @@ export default function CreateEventForm() {
     async function onSubmit(values: z.infer<typeof formSchema>) {
       // Do something with the form values.
       // ✅ This will be type-safe and validated.
-      setLoading(true); // Show loading spinner
-      try{
-        console.log(values)
+      try{  
+        console.log(values.dateTime)
+        // split the string from the space to the left of the G
+        const newDate = values.dateTime.toString().split(' G')[0]
+        const utcDate = fromZonedTime(new Date(newDate), values.timezone)
+        console.log(utcDate)
         // Send POST request to API
         const response = await fetch("/api/events", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(values),
+          body: JSON.stringify({
+            title: values.title,
+            description: values.description,
+            dateTime: utcDate,
+          }),
         })
         if (!response.ok) {
           throw new Error("Something went wrong")
@@ -214,12 +222,12 @@ export default function CreateEventForm() {
               <SelectContent>
                 <SelectGroup>
                   <SelectLabel>North America</SelectLabel>
-                  <SelectItem value="et">Eastern Time (ET)</SelectItem>
-                  <SelectItem value="ct">Central Time (CT)</SelectItem>
-                  <SelectItem value="mt">Mountain Time (MT)</SelectItem>
-                  <SelectItem value="pt">Pacific Time (PT)</SelectItem>
-                  <SelectItem value="akt">Alaska Time (AKT)</SelectItem>
-                  <SelectItem value="hat">Hawaii Time (HAT)</SelectItem>
+                  <SelectItem value="America/New_York">Eastern Time (ET)</SelectItem>
+                  <SelectItem value="America/Chicago">Central Time (CT)</SelectItem>
+                  <SelectItem value="America/Denver">Mountain Time (MT)</SelectItem>
+                  <SelectItem value="America/Los_Angeles">Pacific Time (PT)</SelectItem>
+                  <SelectItem value="America/Anchorage">Alaska Time (AKT)</SelectItem>
+                  <SelectItem value="Pacific/Honolulu">Hawaii Time (HAT)</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
