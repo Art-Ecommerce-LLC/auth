@@ -88,6 +88,7 @@ export async function POST(request: NextRequest) {
   // Create an event in the user's Google Calendar
   console.log('timezone', timezone);
   console.log('timezoneMap', timezoneMap[timezone]);
+  console.log('eventDate', eventDate.toISOString());
   const eventRequest = {
     calendarId: '055f86c75a99c3985ff91566fe3705198573df32246426b79c8636e6af4b657a@group.calendar.google.com',
     resource: {
