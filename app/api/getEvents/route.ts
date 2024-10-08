@@ -88,10 +88,6 @@ export async function POST(request: NextRequest) {
         // test deploy
 
 
-        // If no available events, return an appropriate message
-        if (availableEvents.length === 0) {
-            return NextResponse.json({ message: "No available events found" }, { status: 200 });
-        }
         console.log(availableEvents);
         // Return the next available events
         return NextResponse.json({ events: availableEvents }, { status: 200 });

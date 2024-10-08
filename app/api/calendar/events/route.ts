@@ -56,9 +56,9 @@ export async function GET() {
     const events = res.data.items;
 
     console.log(events);
-    if (!events || events.length === 0) {
-      return NextResponse.json({ message: 'No upcoming events found.' });
-    }
+    // if (!events || events.length === 0) {
+    //   return NextResponse.json({ message: 'No upcoming events found.' });
+    // }
 
     return NextResponse.json(events);
   } catch (error) {
