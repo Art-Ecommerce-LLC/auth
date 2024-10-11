@@ -124,6 +124,7 @@ export async function POST(request : NextRequest) {
         });
         return NextResponse.json({"message": "Your Event Has Been Booked!"});
     } catch (error) {
+        console.log('Error booking time slot', error);
         console.error(error);
         return NextResponse.json({ error: 'Error booking time slot' }, { status: 500 });
     }
