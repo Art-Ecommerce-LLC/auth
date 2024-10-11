@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
 
   while (startDateTimeLoop < endDateTime) {
 
-    let startInterval = startDateTimeLoop;
+    const startInterval = startDateTimeLoop;
 
     // Add the appointmentLength to the startDateTimeLoop
     startDateTimeLoop = addMinutes(startDateTimeLoop, Number(appointmentLength));
