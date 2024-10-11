@@ -24,7 +24,6 @@ export async function POST(request : NextRequest) {
     try {
         const body = await request.json();
         const { dateTime, guestEmail, serviceToken, description } = schema.parse(body);
-        console.log('dateTime:', dateTime);
         
         // Check if the service token is valid
         const user = await db.user.findUnique({
