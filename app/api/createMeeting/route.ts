@@ -7,7 +7,6 @@ import { decrypt } from '@/lib/encrypt';
 
 const schema = z.object({
     dateTime: z.string(),
-    timezone: z.string(),
     guestEmail: z.string(),
     serviceToken: z.string(),
     description: z.string()
@@ -24,9 +23,9 @@ export async function POST(request : NextRequest) {
     // get the body of the request in a json
     try {
         const body = await request.json();
-        const { dateTime, timezone, guestEmail, serviceToken, description } = schema.parse(body);
+        const { dateTime, guestEmail, serviceToken, description } = schema.parse(body);
         
-    
+        
         // Check if the service token is valid
         const user = await db.user.findUnique({
             where: {
@@ -101,12 +100,10 @@ export async function POST(request : NextRequest) {
         // Extract and add timezone to start and end times
         const updatedStart = {
             dateTime: start.dateTime, // Use the existing event's start time
-            timeZone: timezone // Set the timezone from request body
         };
 
         const updatedEnd = {
             dateTime: end.dateTime, // Use the existing event's end time
-            timeZone: timezone // Set the timezone from request body
         };
             
         const attendees = existingEvent.data.attendees || [];

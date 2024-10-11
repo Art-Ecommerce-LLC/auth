@@ -1,7 +1,6 @@
 "use client";
 
-import CreateEventWidget from "./widgets/CreateEventWidget";
-import CalendarWidget from "./widgets/CalendarWidget";
+import CreateAppointments from "./widgets/CreateAppointmentsSchedule.tsx";
 
 
 export default function AdminDashboard() {
@@ -11,9 +10,8 @@ export default function AdminDashboard() {
       <div className="flex-1 bg-gray-100 p-6">
         {/* Widget grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-
-          <CalendarWidget />
-          <CreateEventWidget />
+          
+          <CreateAppointments />
 
         </div>
       </div>
