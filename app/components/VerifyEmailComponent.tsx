@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { Spinner } from "@nextui-org/spinner";
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { useToast } from "@/components/hooks/use-toast"
-import { buttonVariants } from "@/components/ui/button"
+import { Button } from './ui/button';
+import { useToast } from "./hooks/use-toast"
+import { buttonVariants } from "./ui/button"
 
 export default function VerifyEmailPage() {
     const { toast } = useToast()
