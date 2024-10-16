@@ -3,12 +3,7 @@ import db from '@/lib/db';
 import { google } from 'googleapis';
 import { decrypt } from '@/lib/encrypt';
 import { z } from 'zod';
-
-const CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
-const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
-const REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI!;
-
-const oauth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
+import { oauth2Client } from '@/lib/oauth_client';
 
 
 const schema = z.object({

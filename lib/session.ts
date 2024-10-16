@@ -198,23 +198,26 @@ export async function manageSession({
 
         return { token: finalToken, expiresAt: sessionJWT.expiresAt, sessionId: sessionJWT.sessionId};
       case 'verifyEmail':
+
         sessionJWT = await createSessionData(sessionType, userId, mfaVerified);
         finalToken = await encrypt(sessionJWT);
         createCookie(sessionType, finalToken, sessionJWT.expiresAt);
         return { token: finalToken, expiresAt: sessionJWT.expiresAt};
+
       case 'resetPassword':
-        console.log(sessionType, userId, mfaVerified)
+
         sessionJWT = await createSessionData(sessionType, userId, mfaVerified);
-        console.log("JWT" + sessionJWT)
         finalToken = await encrypt(sessionJWT);
         if (storeSession) {
           createCookie(sessionType, finalToken, sessionJWT.expiresAt);
         }
         return { token: finalToken, expiresAt: sessionJWT.expiresAt};
+
       case 'otp':
         sessionJWT = await createSessionData(sessionType, userId, mfaVerified);
         finalToken = await encrypt(sessionJWT);
         createCookie(sessionType, finalToken, sessionJWT.expiresAt);
+        
         if (!('otp' in sessionJWT)) {
           throw new Error('error occured in otp')
         }

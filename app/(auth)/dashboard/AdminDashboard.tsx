@@ -1,20 +1,15 @@
 "use client";
 
-import CreateAppointments from "./widgets/CreateAppointmentsSchedule.tsx";
+import AppointmentsComponent from "@/components/form/CreateAppointmentsForm";
 
 
 export default function AdminDashboard() {
   return (
-    <div className="flex h-screen">
+    <div className="flex flex-col h-screen w-screen">
       {/* Main Content */}
-      <div className="flex-1 bg-gray-100 p-6">
-        {/* Widget grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-          
-          <CreateAppointments />
-
+      <div className="w-[40vw] h-full items-center">
+          <AppointmentsComponent  />
         </div>
-      </div>
     </div>
   );
 }

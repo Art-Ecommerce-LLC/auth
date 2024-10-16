@@ -103,7 +103,7 @@ const formSchema = z.object({
   }
 });
 
-export default function AppointmentsComponent() {
+export default function DeleteAppointmentsCompomnent() {
 
   const { toast } = useToast()
 

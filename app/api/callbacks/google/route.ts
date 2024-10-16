@@ -4,14 +4,8 @@ import { NextResponse } from 'next/server';
 import { NextRequest } from 'next/server';
 import db from '@/lib/db'
 import{ encrypt } from '@/lib/encrypt' 
+import { oauth2Client } from '@/lib/oauth_client';
 
-// Load environment variables
-const CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
-const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
-const REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI!;
-const NEXTAUTH_URL = process.env.NEXTAUTH_URL!;
-
-const oauth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
@@ -50,7 +44,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.redirect(`${NEXTAUTH_URL}/dashboard`);
+    return NextResponse.redirect(`${process.env.NODE_URL}/dashboard`);
   } catch (error) {
     console.error('Error exchanging authorization code for tokens:', error);
     return NextResponse.json({ error: 'Failed to authenticate' }, { status: 500 });

@@ -4,6 +4,7 @@ import { z } from 'zod';
 import db from '@/lib/db';
 import { google } from 'googleapis';
 import { decrypt } from '@/lib/encrypt';
+import { oauth2Client } from '@/lib/oauth_client';
 
 const schema = z.object({
     dateTime: z.string(),
@@ -12,11 +13,6 @@ const schema = z.object({
     description: z.string()
 });
 
-const CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
-const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
-const REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI!;
-
-const oauth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
 
 export async function POST(request : NextRequest) {
 
@@ -85,7 +81,7 @@ export async function POST(request : NextRequest) {
     
         // Add the guest email to the event
         const existingEvent = await calendar.events.get({
-            calendarId: '055f86c75a99c3985ff91566fe3705198573df32246426b79c8636e6af4b657a@group.calendar.google.com',
+            calendarId: process.env.GOOGLE_CALENDAR_ID,
             eventId: event.googleEventId,
         });
 
@@ -110,7 +106,7 @@ export async function POST(request : NextRequest) {
 
         // Update the event with the new attendee
         await calendar.events.patch({
-            calendarId: "055f86c75a99c3985ff91566fe3705198573df32246426b79c8636e6af4b657a@group.calendar.google.com",
+            calendarId: process.env.GOOGLE_CALENDAR_ID,
             eventId: event.googleEventId,
             requestBody: {
                 attendees,
