@@ -22,12 +22,14 @@ export async function POST(request : NextRequest) {
         const { dateTime, guestEmail, serviceToken, description } = schema.parse(body);
         
         // Check if the service token is valid
+        console.log(serviceToken)
         const user = await db.user.findUnique({
             where: {
                 serviceToken: serviceToken
             }
         })
-    
+        console.log(user)
+
         if (!user) {
             return NextResponse.json({error:"Invalid service token"}, {status:401})
         }
@@ -120,7 +122,6 @@ export async function POST(request : NextRequest) {
         return NextResponse.json({"message": "Your Event Has Been Booked!"});
     } catch (error) {
         console.log('Error booking time slot', error);
-        console.error(error);
         return NextResponse.json({ error: 'Error booking time slot' }, { status: 500 });
     }
 
