@@ -1,5 +1,5 @@
-import { SignInForm } from "@/components/form/SignInForm"
-import { getSessionData } from "@/lib/dal"
+import { SignInForm } from "@/app/components/form/SignInForm"
+import { getSessionData } from "@/app/lib/dal"
 import { redirect } from "next/navigation"
 
 

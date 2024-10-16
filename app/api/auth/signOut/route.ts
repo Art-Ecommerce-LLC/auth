@@ -1,8 +1,8 @@
 import { NextResponse, NextRequest } from "next/server";
-import { deleteSession } from "@/lib/session";
+import { deleteSession } from "@/app/lib/session";
 import { cookies } from "next/headers";
-import { decrypt } from "@/lib/encrypt";
-import db from "@/lib/db";
+import { decrypt } from "@/app/lib/encrypt";
+import db from "@/app/lib/db";
 
 export async function POST(request: NextRequest) {
     // Delete session cook

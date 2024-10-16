@@ -1,6 +1,6 @@
 // components/SignInButton.tsx
 import React from 'react';
-import { User } from '@/models/models';
+import { User } from '@/app/models/models';
 
 interface SignInButtonProps {
     user: User;

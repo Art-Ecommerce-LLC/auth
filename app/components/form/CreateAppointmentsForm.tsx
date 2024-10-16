@@ -13,11 +13,11 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+} from "@/app/components/ui/form"
+import { Input } from "@/app/components/ui/input"
 import GoogleConnectButton from "../ui/GoogleConnectButton"
 import { addDays } from "date-fns"
-import { Textarea } from "@/components/ui/textarea"
+import { Textarea } from "@/app/components/ui/textarea"
 import {
   Select,
   SelectContent,
@@ -26,9 +26,9 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/app/components/ui/select"
 import { DatePickerWithRange } from "../DatePickerWithRange"
-import { createDateTime } from "@/lib/dates"
+import { createDateTime } from "@/app/lib/dates"
 import { useToast } from "../hooks/use-toast"
 import {Spinner} from "@nextui-org/spinner";
 import GenerateKey from "../ui/GenerateKey";
@@ -253,6 +253,7 @@ export default function AppointmentsComponent() {
                 <FormControl>
                   <Textarea
                     placeholder="Enter description..." 
+                    className="max-h-24"
                     {...field} />
                 </FormControl>
                 <FormMessage />

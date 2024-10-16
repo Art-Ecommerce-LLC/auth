@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { decrypt } from "@/lib/encrypt";
-import db from "@/lib/db";
-import { google } from "googleapis";
-import { oauth2Client } from "@/lib/oauth_client";
+import { decrypt } from "@/app/lib/encrypt";
+import db from "@/app/lib/db";
+import { oauth2Client } from "@/app/lib/oauth_client";
 
 export async function GET() {
 

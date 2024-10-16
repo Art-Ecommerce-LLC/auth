@@ -1,7 +1,7 @@
 
 
 
-import { buttonVariants } from "@/components/ui/button"
+import { buttonVariants } from "@/app/components/ui/button"
 import Link from 'next/link'
 
 export default async function VerifiedEmailPage() {

@@ -1,9 +1,9 @@
 import { NextResponse, NextRequest } from 'next/server';
-import db from '@/lib/db';
+import db from '@/app/lib/db';
 import { google } from 'googleapis';
-import { decrypt } from '@/lib/encrypt';
+import { decrypt } from '@/app/lib/encrypt';
 import { z } from 'zod';
-import { oauth2Client } from '@/lib/oauth_client';
+import { oauth2Client } from '@/app/lib/oauth_client';
 
 
 const schema = z.object({

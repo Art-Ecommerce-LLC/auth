@@ -1,5 +1,5 @@
-import { ResetPasswordForm } from "@/components/form/ResetPasswordForm"
-import { getSessionData } from "@/lib/dal"
+import { ResetPasswordForm } from "@/app/components/form/ResetPasswordForm"
+import { getSessionData } from "@/app/lib/dal"
 import { redirect } from "next/navigation"
 
 export default async function ResetPasswordPage() {

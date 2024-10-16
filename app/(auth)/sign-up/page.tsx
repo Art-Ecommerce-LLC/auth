@@ -1,5 +1,5 @@
-import { SignUpForm } from "@/components/form/SignUpForm"
-import { getSessionData } from "@/lib/dal"
+import { SignUpForm } from "@/app/components/form/SignUpForm"
+import { getSessionData } from "@/app/lib/dal"
 import { redirect } from "next/navigation"
 
 export default async function SignUpPage() {

@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import Link from "next/link"
 
-import { Button } from "@/components/ui/button"
+import { Button } from "../ui/button"
 import {
   Form,
   FormControl,
@@ -15,8 +15,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+} from "../ui/form"
+import { Input } from "../ui/input"
 import { useToast } from "../hooks/use-toast"
 import { useRouter } from "next/navigation"
 

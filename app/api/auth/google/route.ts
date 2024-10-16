@@ -1,6 +1,6 @@
 
 import { NextResponse } from 'next/server';
-import { oauth2Client } from '@/lib/oauth_client';
+import { oauth2Client } from '@/app/lib/oauth_client';
 
 export async function GET() {
   // Include the Google Calendar scopes along with the user profile scopes

@@ -1,10 +1,10 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import db from '@/lib/db';
+import db from '@/app/lib/db';
 import { google } from 'googleapis';
-import { decrypt } from '@/lib/encrypt';
-import { oauth2Client } from '@/lib/oauth_client';
+import { decrypt } from '@/app/lib/encrypt';
+import { oauth2Client } from '@/app/lib/oauth_client';
 
 const schema = z.object({
     dateTime: z.string(),

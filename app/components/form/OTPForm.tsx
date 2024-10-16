@@ -5,19 +5,19 @@ import { Spinner } from "@nextui-org/spinner";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/app/components/ui/button"
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
-} from "@/components/ui/form"
+} from "@/app/components/ui/form"
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSeparator,
   InputOTPSlot,
-} from "@/components/ui/input-otp"
+} from "@/app/components/ui/input-otp"
 import { useToast } from "../hooks/use-toast"
 import { useRouter } from "next/navigation"
 
@@ -155,8 +155,7 @@ export function OTPForm() {
             />
         <Button 
         type="submit" 
-        variant="outline" 
-        className="w-80 mt-3" 
+        className="w-80 mt-3 bg-success"  
         disabled={submitLoading}>
         {submitLoading ? "Submitting..." : "Submit"}
         </Button>

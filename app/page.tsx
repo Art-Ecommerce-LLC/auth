@@ -1,8 +1,8 @@
   // pages/index.js (Client Component)
   "server-only";
 
-  import ServerNavbar from '@/components/ServerNavbar'; // Import server-side component
-  import HomeComponent from '@/components/HomeComponent';
+  import ServerNavbar from '@/app/components/ServerNavbar'; // Import server-side component
+  import HomeComponent from '@/app/components/HomeComponent';
 
   export default function Home() {
     return (

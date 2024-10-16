@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from 'next/navigation';
-import { useToast } from '@/components/hooks/use-toast';
+import { useToast } from '@/app/components/hooks/use-toast';
 
 export function useSignOut() {
   const router = useRouter();

@@ -1,7 +1,7 @@
 
 import type { Metadata } from "next";
 import "./styles/globals.css";
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from "./components/ui/toaster"
 import {NextUIProvider} from "@nextui-org/react";
 
 export const metadata: Metadata = {

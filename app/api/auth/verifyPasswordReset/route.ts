@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { decrypt } from '@/lib/encrypt';
+import { decrypt } from '@/app/lib/encrypt';
 import { z } from 'zod';
-import db from '@/lib/db';
+import db from '@/app/lib/db';
 import { compare } from 'bcrypt';
-import { manageSession } from '@/lib/session';
+import { manageSession } from '@/app/lib/session';
 
 const jwtSchema = z.object({
     session: z.string().min(1),
