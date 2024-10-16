@@ -2,9 +2,9 @@
 import { google } from 'googleapis';
 import { NextResponse } from 'next/server';
 import { NextRequest } from 'next/server';
-import db from '@/app/lib/db'
-import{ encrypt } from '@/app/lib/encrypt' 
-import { oauth2Client } from '@/app/lib/oauth_client';
+import db from '@/lib/db'
+import{ encrypt } from '@/lib/encrypt' 
+import { oauth2Client } from '@/lib/oauth_client';
 
 
 export async function GET(request: NextRequest) {

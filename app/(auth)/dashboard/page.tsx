@@ -1,8 +1,8 @@
-import AdminDashboard from '@/app/components/AdminDashboard';
-import UserDashboard from '@/app/components//UserDashboard';
+import AdminDashboard from '@/components/AdminDashboard';
+import UserDashboard from '@/components//UserDashboard';
 import { redirect } from 'next/navigation';
-import { getSessionData } from '@/app/lib/dal';
-import NavbarDashServer from '@/app/components/NavbarDashServer';
+import { getSessionData } from '@/lib/dal';
+import NavbarDashServer from '@/components/NavbarDashServer';
 export default async function Dashboard() {
 
 

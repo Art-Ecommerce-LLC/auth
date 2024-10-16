@@ -1,7 +1,7 @@
 "use client";
 
-import { Button} from "@/app/components/ui/button";
-import { useSignOut } from "@/app/authtool/access/signOut";
+import { Button} from "@/components/ui/button";
+import { useSignOut } from "@/lib/signOut";
 
 export default function SignOutPage() {
   const { signOut } = useSignOut();

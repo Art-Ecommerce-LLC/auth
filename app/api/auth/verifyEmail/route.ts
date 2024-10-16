@@ -1,9 +1,9 @@
 import { NextResponse, NextRequest } from "next/server";
-import db from "@/app/lib/db";
+import db from "@/lib/db";
 import * as z from "zod";
-import { decrypt } from "@/app/lib/encrypt";
+import { decrypt } from "@//lib/encrypt";
 import { compare } from "bcrypt";
-import { deleteSession } from "@/app/lib/session";
+import { deleteSession } from "@/lib/session";
 
 // Define a jwt schema for input Validation
 const jwtSchema = z.object({

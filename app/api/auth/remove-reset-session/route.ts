@@ -1,7 +1,7 @@
-import { deleteSession } from "@/app/lib/session";
+import { deleteSession } from "@/lib/session";
 import { NextResponse, NextRequest } from "next/server";
 import { cookies } from "next/headers";
-import { decrypt } from "@/app/lib/encrypt";
+import { decrypt } from "@/lib/encrypt";
 
 export async function POST(request: NextRequest) {
     console.log('POST /api/auth/remove-reset-session');

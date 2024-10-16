@@ -1,6 +1,6 @@
 
-import VerifyEmailComponent from "@/app/components/VerifyEmailComponent"
-import { getSessionData } from "@/app/lib/dal"
+import VerifyEmailComponent from "@/components/VerifyEmailComponent"
+import { getSessionData } from "@/lib/dal"
 import { redirect } from "next/navigation"; // Import the redirect function
 
 export default async function VerifyEmailPage() {

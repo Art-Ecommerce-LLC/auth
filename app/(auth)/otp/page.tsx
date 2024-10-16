@@ -1,6 +1,6 @@
 
-import { OTPForm } from "@/app/components/form/OTPForm"
-import { getSessionData } from "@/app/lib/dal"
+import { OTPForm } from "@/components/form/OTPForm"
+import { getSessionData } from "@/lib/dal"
 import { redirect } from "next/navigation"
 
 export default async function OTPPage() {

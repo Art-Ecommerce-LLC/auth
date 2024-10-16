@@ -1,12 +1,12 @@
 'use server';
 
 import { NextResponse, NextRequest } from "next/server";
-import db from "@/app/lib/db";
+import db from "@/lib/db";
 import * as z from "zod";
 import { cookies } from "next/headers";
-import { decrypt } from "@/app/lib/encrypt";
+import { decrypt } from "@/lib/encrypt";
 import { compare } from "bcrypt";
-import { manageSession, deleteSession } from "@/app/lib/session";
+import { manageSession, deleteSession } from "@/lib/session";
 
 // Define a sc hema for input Validation
 const userSchema = z

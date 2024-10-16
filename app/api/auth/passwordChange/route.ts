@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import * as z from 'zod'
 import { cookies } from 'next/headers'
-import { decrypt } from '@/app/lib/encrypt'
-import db from '@/app/lib/db'
+import { decrypt } from '@/lib/encrypt'
+import db from '@/lib/db'
 import bcrypt from 'bcrypt'
-import { deleteSession } from '@/app/lib/session'
+import { deleteSession } from '@/lib/session'
 
 // Define a schema for input Validation
 const userSchema = z.object({

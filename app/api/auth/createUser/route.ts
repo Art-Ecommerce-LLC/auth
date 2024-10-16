@@ -1,11 +1,11 @@
 'use server';
 
 import { NextResponse, NextRequest } from "next/server";
-import db from "@/app/lib/db";
+import db from "@/lib/db";
 import { hash } from "bcrypt";
 import * as z from "zod";
-import { manageSession } from "@/app/lib/session";
-import { sendEmail } from "@/app/utils/mail";
+import { manageSession } from "@/lib/session";
+import { sendEmail } from "@/utils/mail";
 import crypto from "crypto"; // Built-in Node.js crypto module
 
 

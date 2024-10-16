@@ -1,12 +1,12 @@
 'use server';
 
 import { NextResponse, NextRequest } from "next/server";
-import db from "@/app/lib/db";
-import { decrypt } from "@/app/lib/encrypt";
+import db from "@/lib/db";
+import { decrypt } from "@/lib/encrypt";
 import { cookies } from "next/headers";
-import { sendEmail } from "@/app/utils/mail";
+import { sendEmail } from "@/utils/mail";
 import { compare } from "bcrypt";
-import { deleteSession, manageSession } from "@/app/lib/session";
+import { deleteSession, manageSession } from "@/lib/session";
 
 export async function POST(request: NextRequest) {
     try {
