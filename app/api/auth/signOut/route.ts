@@ -7,7 +7,7 @@ import db from "@/lib/db";
 export async function POST(request: NextRequest) {
     // Delete session cook
     try {
-        const session = cookies().get('session');
+        const session = (await cookies()).get('session');
         if (!session) {
             throw new Error("Session not found");
         }

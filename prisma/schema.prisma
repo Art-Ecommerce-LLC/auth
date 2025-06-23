@@ -26,8 +26,6 @@ model User {
   resetPasswords ResetPassword?
   emailVerifications EmailVerification?
   otps OTP?
-  renderDeploys RenderDeploys[]
-  Event Event[]
   @@map("users")
 
 }
@@ -88,33 +86,5 @@ model EmailVerification {
   user        User     @relation(fields: [userId], references: [id])
 
   @@map("email_verifications")
-}
-
-
-model RenderDeploys {
-  id          String   @id @default(cuid()) @unique
-  userId      String   @map("user_id") @unique
-  serviceId   String   @map("service_id") @unique
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  user        User     @relation(fields: [userId], references: [id])
-  @@map("render_deploys")
-}
-
-model Event {
-  id            Int      @id @default(autoincrement())
-  title         String
-  description   String
-  date          DateTime @unique
-  isBooked      Boolean  @default(false) @map("is_booked")
-  guestEmail    String?  @map("guest_email")
-  googleEventId String?  @map("google_event_id") @unique
-  serviceToken  String   @map("service_token")
-
-  user        User     @relation(fields: [serviceToken], references: [serviceToken])
-
-  @@map("events")
-  
 }
 

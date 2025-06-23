@@ -11,7 +11,7 @@ export async function createCookie(name: string, value: string, expires: Date) {
 
   switch (name) {
     case 'resetPassword':
-      cookies().set(name, value, {
+      (await cookies()).set(name, value, {
         httpOnly: true,
         secure: isProduction,
         expires: expires,
@@ -20,7 +20,7 @@ export async function createCookie(name: string, value: string, expires: Date) {
       });
       break;
     default:
-      cookies().set(name, value, {
+      (await cookies()).set(name, value, {
         httpOnly: true,
         secure: isProduction,
         expires: expires,
@@ -32,14 +32,14 @@ export async function createCookie(name: string, value: string, expires: Date) {
 }
 
 export async function getCookie(name: string) {
-  const cookie = cookies().get(name);
+  const cookie = (await cookies()).get(name);
   return cookie;
 }
 
 export async function deleteCookie(name: string, req: NextRequest) {
   console.log('Deleting cookie', name);
 
-  const serverCookies = cookies();
+  const serverCookies = await cookies();
   console.log('serverCookies', serverCookies);
   console.log('requestCookies', req.cookies);
   serverCookies.delete(name);

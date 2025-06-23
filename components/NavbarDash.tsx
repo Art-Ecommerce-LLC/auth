@@ -47,11 +47,6 @@ export default function NavbarDash({ mfaVerified }: { mfaVerified: boolean }) {
         <NavbarBrand>
           <AcmeLogo />
         </NavbarBrand>
-        <NavbarItem>
-          <Link color="foreground" href="#">
-           Appointments
-          </Link>
-        </NavbarItem>
       </NavbarContent>
 
       {/* Right Side: Sign In/Sign Out Conditional */}
@@ -63,7 +58,7 @@ export default function NavbarDash({ mfaVerified }: { mfaVerified: boolean }) {
         )}
         <NavbarItem>
           {mfaVerified ? (
-            <Button color="warning" variant="flat" onClick={signOut}>
+            <Button color="warning" variant="flat" onPress={signOut}>
               Sign Out
             </Button>
           ) : (

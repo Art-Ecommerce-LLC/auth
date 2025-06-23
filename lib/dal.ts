@@ -9,7 +9,7 @@ import db from './db'
 
 
 export const verifySession = cache(async () => {
-    const cookie = cookies().get('session')?.value
+    const cookie = (await cookies()).get('session')?.value
 
     if (!cookie) {
         return { isAuth: false}
@@ -49,7 +49,7 @@ export const getUser = cache(async () => {
 })
 
 export const getOTPSession = cache(async () => {
-    const cookie = cookies().get('otp')?.value
+    const cookie = (await cookies()).get('otp')?.value
     if (!cookie) {
         return { isAuth: false}
     }
@@ -77,7 +77,7 @@ export const getOTPSession = cache(async () => {
 
 
 export const getVerifyEmailSession = cache(async () => {
-    const cookie = cookies().get('verify-email')?.value
+    const cookie = (await cookies()).get('verify-email')?.value
     if (!cookie) {
         return { isAuth: false}
     }
@@ -103,7 +103,7 @@ export const getVerifyEmailSession = cache(async () => {
 });
 
 export const getResetPasswordSession = cache(async () => {
-    const cookie = cookies().get('resetPassword')?.value
+    const cookie = (await cookies()).get('resetPassword')?.value
     if (!cookie) {
         return { isAuth: false}
     }
@@ -129,7 +129,7 @@ export const getResetPasswordSession = cache(async () => {
 });
 
 export const getSession = cache(async () => {
-    const cookie = cookies().get('session')?.value
+    const cookie = (await cookies()).get('session')?.value
     if (!cookie) {
         return { isAuth: false}
     }
