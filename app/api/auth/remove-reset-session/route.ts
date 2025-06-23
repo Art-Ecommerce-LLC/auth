@@ -6,7 +6,7 @@ import { decrypt } from "@/lib/encrypt";
 export async function POST(request: NextRequest) {
     console.log('POST /api/auth/remove-reset-session');
     // Get session data
-    const session = cookies().get('resetPassword')?.value;
+    const session = (await cookies()).get('resetPassword')?.value;
     if (!session) { 
         return NextResponse.json({ error: "Session not found" }, { status: 404 });
     }

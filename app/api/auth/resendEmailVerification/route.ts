@@ -11,7 +11,7 @@ import { deleteSession, manageSession } from "@/lib/session";
 
 export async function POST(request : NextRequest) {
     try {
-        const session = cookies().get('verifyEmail');
+        const session = (await cookies()).get('verifyEmail');
  
         if (!session) {
             return NextResponse.json({ error: "Session not found" }, { status: 404 })

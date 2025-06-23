@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
         const { otp } = userSchema.parse(body);
 
         // Validate the OTP against the session and then the OTP table
-        const otpSession = cookies().get('otp');
+        const otpSession = (await cookies()).get('otp');
         
 
         if (!otpSession) {
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
         // Delete the existing otp session
 
         // Get the session Data Cookie
-        const sessionDataCookie = cookies().get('session')
+        const sessionDataCookie = (await cookies()).get('session')
 
         if (!sessionDataCookie) {
             return NextResponse.json({error: "No Session"}, {status: 200})

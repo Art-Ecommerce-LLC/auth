@@ -10,7 +10,7 @@ import { deleteSession, manageSession } from "@/lib/session";
 
 export async function POST(request: NextRequest) {
     try {
-        const session = cookies().get('otp');
+        const session = (await cookies()).get('otp');
 
         if (!session) {
             console.log("Session not found")

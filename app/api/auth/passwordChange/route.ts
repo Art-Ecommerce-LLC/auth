@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
         }
 
         // validate the cookie session
-        const cookieSession = cookies().get('resetPassword')
+        const cookieSession = (await cookies()).get('resetPassword')
 
         if (!cookieSession) {
             return NextResponse.json({ error: 'Session not found' }, { status: 404 })
