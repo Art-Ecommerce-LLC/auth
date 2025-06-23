@@ -62,7 +62,7 @@ Promise<{ token: string; expiresAt: Date, userId: string } |
       }
 
       hashedToken = await hash(newSessionToken, 10);
-      const ipAddress = IP(); // Call the IP function to get the IP address
+      const ipAddress = await IP(); // Call the IP function to get the IP address
       const newSession = await db.session.create({
         data: {
           userId,
