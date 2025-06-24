@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import { NextRequest } from 'next/server';
 
 export async function createCookie(name: string, value: string, expires: Date) {
-  const isProduction = process.env.NODE_ENV === 'production';
+  const isProduction = process.env.APP_ENV === 'production';
 
   console.log('Creating cookie', name, value, expires);
 

@@ -1,0 +1,47 @@
+{
+  "urgency": "medium",
+  "value": "moderate",
+  "recommended_roles": [
+    "HVAC_contractor",
+    "mechanical_engineer",
+    "building_inspector"
+  ],
+  "guide_json": {
+    "HVAC_contractor": {
+      "guide": [
+        "Assess the building's heating, ventilation, and air conditioning needs through an on-site evaluation.",
+        "Design and propose an HVAC system that meets energy efficiency and code requirements.",
+        "Install the HVAC system, including ductwork, units, and controls, according to the approved plans.",
+        "Test and commission the system to ensure proper operation and provide maintenance instructions."
+      ],
+      "details": "An HVAC contractor is responsible for designing, installing, and maintaining heating, ventilation, and air conditioning systems in buildings. They ensure that the systems are energy-efficient, code-compliant, and meet the comfort needs of occupants."
+    },
+    "mechanical_engineer": {
+      "guide": [
+        "Review architectural plans and assess mechanical system requirements for the project.",
+        "Design mechanical systems, including HVAC, plumbing, and fire protection, ensuring compliance with regulations.",
+        "Prepare detailed engineering drawings and specifications for contractors to follow.",
+        "Coordinate with other engineers and stakeholders to resolve design conflicts and optimize system performance."
+      ],
+      "details": "A mechanical engineer designs and oversees the implementation of mechanical systems in buildings, such as HVAC, plumbing, and fire protection. They ensure these systems are safe, efficient, and integrated with the overall building design."
+    },
+    "building_inspector": {
+      "guide": [
+        "Review project plans and permits to understand the scope and code requirements.",
+        "Conduct on-site inspections at various construction stages to verify compliance with building codes and standards.",
+        "Document findings and communicate any violations or required corrections to the project team.",
+        "Approve completed work or schedule follow-up inspections as necessary."
+      ],
+      "details": "A building inspector ensures that construction work complies with local building codes, safety regulations, and approved plans. They conduct inspections at key project milestones and provide guidance on necessary corrections."
+    }
+  },
+  "reasoning_summary": "The permit covers replacement of key HVAC components (AC, coil, furnace, ducts) in a residential property, which is important for occupant comfort and safety but is a standard maintenance/upgrade rather than a major renovation or property sale. The value is moderate due to the cost and impact on property systems. Real estate agent involvement is not necessary unless the property is being prepared for sale.",
+  "estimated_value_per_role": {
+    "HVAC_contractor": 25000,
+    "mechanical_engineer": 8000,
+    "building_inspector": 2000
+  },
+  "lead_price": 0,
+  "needs_more_permits": false,
+  "next_steps": ""
+}
