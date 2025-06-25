@@ -1,5 +1,10 @@
 "use client";
 
+// TODO: FIX Upgrade to plus so that you can upgrade from base to plus just by paying the difference
+// TODO: Add the permit dashbaord and reload all permits
+// TODO: Upgrade UI to production quality
+// TODO: Change email smtp to no reply emails.
+
 import React from "react";
 import {
   Navbar,
@@ -12,53 +17,63 @@ import {
   Link,
   Button,
 } from "@nextui-org/react";
-import { Settings } from "lucide-react"   
+import { Settings } from "lucide-react";
+import { usePathname } from "next/navigation";   // ← NEW
 import { AcmeLogo } from "./AcmeLogo";
-import { useSignOut } from "@/lib/signOut"; // Custom sign-out hook
+import { useRouter } from "next/navigation";
+import { useSignOut } from "@/lib/signOut";
 
 export default function NavbarDash({ mfaVerified }: { mfaVerified: boolean }) {
-  const { signOut } = useSignOut(); // Use the custom sign-out hook
+  const pathname = usePathname();                // ← NEW
+  const onSettingsPage = pathname.startsWith("/settings");
+  const { signOut } = useSignOut();
+  const router = useRouter();
+  
+    function redirectDashboard() {
+      router.push('/dashboard');
+    }
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
-  const menuItems = [
-    "Settings",
-    "Sign Out",
-  ];
+  /* ------------------------------------------------------------- */
+  /*  mobile menu items – keep Dashboard & Settings both visible   */
+  /* ------------------------------------------------------------- */
+  const menuItems = ["Dashboard", "Settings", "Sign Out"];
 
   return (
-    <Navbar
-      isBordered
-      isMenuOpen={isMenuOpen}
-      onMenuOpenChange={setIsMenuOpen}
-    >
-      {/* Mobile View: Left Side - Menu Toggle */}
+    <Navbar isBordered isMenuOpen={isMenuOpen} onMenuOpenChange={setIsMenuOpen}>
+      {/* Mobile: hamburger (left) + logo (center) */}
       <NavbarContent className="sm:hidden" justify="start">
-        <NavbarMenuToggle aria-label={isMenuOpen ? "Close menu" : "Open menu"} />
+        <NavbarMenuToggle
+          aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+        />
       </NavbarContent>
-
-      {/* Centered Brand Logo for Mobile */}
       <NavbarContent className="sm:hidden pr-3" justify="center">
         <NavbarBrand>
           <AcmeLogo />
         </NavbarBrand>
       </NavbarContent>
 
-      {/* Desktop View: Centered Menu Items */}
+      {/* Desktop: brand centred */}
       <NavbarContent className="hidden sm:flex gap-6" justify="center">
         <NavbarBrand>
           <AcmeLogo />
         </NavbarBrand>
       </NavbarContent>
 
-      
-
-      {/* right-hand actions (desktop) */}
+      {/* Right-hand actions (desktop) */}
       <NavbarContent justify="end" className="items-center gap-4">
+        {mfaVerified && onSettingsPage && (            /* ← NEW block */
+          <NavbarItem className="hidden lg:flex">
+            <Button color="success" variant="solid" onPress={redirectDashboard}>
+                          Dashboard
+              </Button>
+          </NavbarItem>
+        )}
+
         {mfaVerified && (
           <NavbarItem className="hidden lg:flex">
-            {/* gear icon → settings page */}
             <Link href="/settings/plan" aria-label="Settings">
-              <Settings size={20} />             {/* <-- icon visible now */}
+              <Settings size={20} />
             </Link>
           </NavbarItem>
         )}
@@ -82,7 +97,7 @@ export default function NavbarDash({ mfaVerified }: { mfaVerified: boolean }) {
         </NavbarItem>
       </NavbarContent>
 
-      {/* mobile off-canvas menu */}
+      {/* Mobile off-canvas */}
       <NavbarMenu>
         {menuItems.map((item) => {
           const href =
@@ -90,7 +105,7 @@ export default function NavbarDash({ mfaVerified }: { mfaVerified: boolean }) {
               ? "#"
               : item === "Settings"
               ? "/settings/plan"
-              : `/${item.toLowerCase()}`
+              : `/${item.toLowerCase()}`;
 
           return (
             <NavbarMenuItem key={item}>
@@ -103,7 +118,7 @@ export default function NavbarDash({ mfaVerified }: { mfaVerified: boolean }) {
                 {item}
               </Link>
             </NavbarMenuItem>
-          )
+          );
         })}
       </NavbarMenu>
     </Navbar>
