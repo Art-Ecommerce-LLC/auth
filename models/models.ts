@@ -1,12 +1,25 @@
 
 
-export type User = {
-    id: string;
-    username: string;
-    emailVerified: boolean;
-    image: string | null;
-    role: string;
+import { Role, PlanStatus } from '@prisma/client'
+
+export interface UserPayload {
+  id: string
+  username: string
+  emailVerified: boolean
+  image: string | null
+  role: Role
+  planStatus: PlanStatus
+  currentPeriodEnd: Date | null
+  stripeCustomerId: string | null
+  stripeSubscriptionId: string | null
+  googleToken: string | null
+  serviceToken: string
 }
+
+export type AuthSuccess = { isAuth: true; user: UserPayload }
+export type AuthFailure = { isAuth: false }
+
+export type AuthResult = AuthSuccess | AuthFailure
 
 export type RenderProject = {
     name: string;

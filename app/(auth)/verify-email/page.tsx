@@ -5,9 +5,9 @@ import { redirect } from "next/navigation"; // Import the redirect function
 
 export default async function VerifyEmailPage() {
   const session = await getSessionData('verifyEmail');
-  console.log(session);
-  if (!session.isAuth) {
-    redirect('/'); // Redirect to the home page if the user is not authenticated
+
+  if (session.isAuth) {
+    redirect('/'); // Redirect to the home page if the user is authenticated
   }
 
   return (

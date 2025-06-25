@@ -4,7 +4,7 @@ import { cookies } from 'next/headers'
 import { decrypt } from './encrypt'
 import { cache } from 'react'
 import db from './db'
-// import renderApi from '@api/render-api';
+
 
 
 
@@ -182,102 +182,3 @@ export const getSessionData = cache(async (pageType: string) => {
         return { isAuth: false }
     }
 });
-
-// export const getRenderProjects = cache(async () => {
-//     try {
-//         const renderProjects = []
-//         const renderApiKey = process.env.RENDER_API_KEY
-//         if (!renderApiKey) {
-//             return []
-//         }
-
-//         // initialize the render client
-//         renderApi.auth(renderApiKey);
-
-//         const user = await getUser()
-//         if (!user) {
-//             return []
-//         }
-
-//         if ("id" in user) {
-//             const projects = await db.renderDeploys.findMany({
-//                 where: {
-//                     userId: user.id
-//                 }
-//             })
-
-//             if (!projects) {
-//                 return []
-//             }
-            
-//             try {
-//                 const renderServices = await renderApi.listServices({limit: 20})
-//                 const { data } = renderServices
-
-//                 for (const {service} of data) {
-//                     if (!service) {
-//                         return []
-//                     }
-//                     const renderDeploys = await renderApi.listDeploys({serviceId: service!.id})
-//                     const { data } = renderDeploys
-
-//                     if (service.suspended === "not_suspended") {
-
-//                         renderProjects.push({ 
-//                             name: service.name,
-//                             commit: data[0]?.deploy?.commit?.message ?? "",  // Ensure commit is never undefined
-//                             status: data[0]?.deploy?.status ?? "canceled",  // Default status if undefined
-//                             updatedAt: data[0]?.deploy?.updatedAt || "",
-//                           });
-
-                        
-
-//                     }   
-
-//                 }  
-
-//             } catch (error) {
-//                 console.log(error)
-//                 console.error("Error fetching render services")
-//             }
-
-//             return renderProjects
-//         } else {
-//             return []
-//         }
-//     }   catch (error) {
-//         return []
-//     }
-// });
-
-// export const getVercelProjects = cache(async () => {
-//     try {
-//         const vercelApiKey = process.env.VERCEL_API_KEY;
-//         const result = await fetch("https://api.vercel.com/v9/projects", {
-//             headers: {
-//                 Authorization: `Bearer ${vercelApiKey}`
-//             },
-//             method: "get"
-//         });
-//         const data = await result.json();
-//         // Ensure that we return an empty array if no projects are found or an error occurs
-//         console.log(data.projects)
-//         // for (const project of data.projects) {  
-//         //     console.log(project.crons.deploymentId)   
-//         //     const deployResult = await fetch(`https://api.vercel.com/v13/deployments/${project.crons.deploymentId}`, {
-//         //         "headers": {
-//         //             "Authorization": "Bearer " + vercelApiKey
-//         //         },
-//         //         "method": "get"
-//         //     });
-//         //     const deployData = await deployResult.json();
-//         //     console.log(deployData)
-
-
-//         // }
-//         // return data.projects || [];
-//     } catch (error) {
-//         console.error("Error fetching Vercel projects:", error);
-//         return []; // Return an empty array if there's an error
-//     }
-// });

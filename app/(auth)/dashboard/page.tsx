@@ -1,28 +1,25 @@
-import AdminDashboard from '@/components/AdminDashboard';
-import UserDashboard from '@/components//UserDashboard';
-import { redirect } from 'next/navigation';
-import { getSessionData } from '@/lib/dal';
-import NavbarDashServer from '@/components/NavbarDashServer';
+// app/dashboard/page.tsx
+import { requirePaidUser } from '@/lib/require-paid'
+import NavbarDashServer from '@/components/NavbarDashServer'
+import AdminDashboard from '@/components/AdminDashboard'
+import UserDashboard from '@/components/UserDashboard'
+
 export default async function Dashboard() {
+  const user = await requirePaidUser()
 
-
-  const session = await getSessionData('session');
-
-  if (!session.mfaVerified) {
-    redirect('/sign-in');
+  if (user.role === 'ADMIN') {
+    return (
+      <>
+        <NavbarDashServer />
+        <AdminDashboard />
+      </>
+    )
   }
 
-  if ('role' in session.user && session.user.role === 'ADMIN') {
-    return <>
-              <NavbarDashServer />
-              <AdminDashboard />
-          </>
-  } else if ('role' in session.user && session.user.role === 'USER') {
-    return <>
-            <NavbarDashServer />
-            <UserDashboard />
-           </>
-  } else {
-    redirect('/sign-in');
-  }
+  return (
+    <>
+      <NavbarDashServer />
+      <UserDashboard />
+    </>
+  )
 }

@@ -202,6 +202,7 @@ export async function manageSession({
         sessionJWT = await createSessionData(sessionType, userId, mfaVerified);
         finalToken = await encrypt(sessionJWT);
         createCookie(sessionType, finalToken, sessionJWT.expiresAt);
+        console.log('cookie was created');
         return { token: finalToken, expiresAt: sessionJWT.expiresAt};
 
       case 'resetPassword':

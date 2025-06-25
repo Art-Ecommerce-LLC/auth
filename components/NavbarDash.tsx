@@ -12,6 +12,7 @@ import {
   Link,
   Button,
 } from "@nextui-org/react";
+import { Settings } from "lucide-react"   
 import { AcmeLogo } from "./AcmeLogo";
 import { useSignOut } from "@/lib/signOut"; // Custom sign-out hook
 
@@ -20,8 +21,8 @@ export default function NavbarDash({ mfaVerified }: { mfaVerified: boolean }) {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
   const menuItems = [
-    "Appointments",
-    "Log Out",
+    "Settings",
+    "Sign Out",
   ];
 
   return (
@@ -49,13 +50,25 @@ export default function NavbarDash({ mfaVerified }: { mfaVerified: boolean }) {
         </NavbarBrand>
       </NavbarContent>
 
-      {/* Right Side: Sign In/Sign Out Conditional */}
-      <NavbarContent justify="end">
+      
+
+      {/* right-hand actions (desktop) */}
+      <NavbarContent justify="end" className="items-center gap-4">
+        {mfaVerified && (
+          <NavbarItem className="hidden lg:flex">
+            {/* gear icon → settings page */}
+            <Link href="/settings/plan" aria-label="Settings">
+              <Settings size={20} />             {/* <-- icon visible now */}
+            </Link>
+          </NavbarItem>
+        )}
+
         {!mfaVerified && (
           <NavbarItem className="hidden lg:flex">
             <Link href="/sign-in">Login</Link>
           </NavbarItem>
         )}
+
         <NavbarItem>
           {mfaVerified ? (
             <Button color="warning" variant="flat" onPress={signOut}>
@@ -69,21 +82,29 @@ export default function NavbarDash({ mfaVerified }: { mfaVerified: boolean }) {
         </NavbarItem>
       </NavbarContent>
 
-      {/* Mobile Menu: Off-canvas */}
+      {/* mobile off-canvas menu */}
       <NavbarMenu>
-        {menuItems.map((item, index) => (
-          <NavbarMenuItem key={`${item}-${index}`}>
-            <Link
-              className="w-full"
-              color={index === menuItems.length - 1 ? "danger" : "foreground"}
-              href={item === "Log Out" ? "#" : `/${item.toLowerCase()}`}
-              size="lg"
-              onClick={item === "Log Out" ? signOut : undefined}
-            >
-              {item}
-            </Link>
-          </NavbarMenuItem>
-        ))}
+        {menuItems.map((item) => {
+          const href =
+            item === "Sign Out"
+              ? "#"
+              : item === "Settings"
+              ? "/settings/plan"
+              : `/${item.toLowerCase()}`
+
+          return (
+            <NavbarMenuItem key={item}>
+              <Link
+                className="w-full"
+                color={item === "Sign Out" ? "danger" : "foreground"}
+                href={href}
+                onClick={item === "Sign Out" ? signOut : undefined}
+              >
+                {item}
+              </Link>
+            </NavbarMenuItem>
+          )
+        })}
       </NavbarMenu>
     </Navbar>
   );

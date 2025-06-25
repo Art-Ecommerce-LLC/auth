@@ -67,7 +67,7 @@ export default function VerifyEmailPage() {
             disabled={loading}>
               {loading ? "Resending..." : "Resend"}
             </Button>
-            <Link href="/sign-in" className={buttonVariants({ variant: "outline" })}>Sign In</Link>
+            <Link href="/sign-in" className={buttonVariants({ variant: "outline", className:"text-black w-full" })}>Sign In</Link>
         </div>        
     </main>
     </div>

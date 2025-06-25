@@ -16,7 +16,7 @@ export default async function VerifiedEmailPage() {
                 <div className="mt-6 flex justify-center">
                 <Link
                     href="/sign-in"
-                    className={buttonVariants({ variant: "secondary"})}
+                    className={buttonVariants({ variant: "secondary", className: "w-full" })}
                     
                 >
                     Sign In

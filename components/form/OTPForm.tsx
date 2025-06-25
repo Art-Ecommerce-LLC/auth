@@ -100,7 +100,7 @@ export function OTPForm() {
               variant: "success",
               description: "OTP verified",
           })
-          router.push('/dashboard')
+          router.push('/dashboard');
       }
     } catch (error) {
       toast({
@@ -155,7 +155,8 @@ export function OTPForm() {
             />
         <Button 
         type="submit" 
-        className="w-80 mt-3 bg-success"  
+        variant={"outline"}
+        className="w-80 mt-3 text-black"  
         disabled={submitLoading}>
         {submitLoading ? "Submitting..." : "Submit"}
         </Button>
