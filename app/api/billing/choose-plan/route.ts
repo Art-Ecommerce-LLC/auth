@@ -9,8 +9,8 @@ import db from "@/lib/db";
 import { hash } from 'bcrypt';
 
 const PRICE_MAP: Record<'base' | 'plus', string> = {
-  base: process.env.STRIPE_PRICE_BASE!,
-  plus: process.env.STRIPE_PRICE_PLUS!,
+  base: process.env.STRIPE_PRICE_BASE_ID!,
+  plus: process.env.STRIPE_PRICE_PLUS_ID!,
 };
 
 // Define a schema for input Validation

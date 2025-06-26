@@ -52,11 +52,13 @@ export async function POST(req: NextRequest) {
     /* 2️⃣  Grace-period cancel or re-activate */
     case 'customer.subscription.updated': {
       const sub = event.data.object as Stripe.Subscription
-
+      //  Check what role the user changed to
+      
       if (sub.cancel_at_period_end) {
         await db.user.update({
           where: { stripeSubscriptionId: sub.id },
           data : {
+            role                : Role.USER,          // ⬅️ back to free tier
             planStatus      : PlanStatus.canceling,
             currentPeriodEnd: new Date(sub.items.data[0].current_period_end * 1000),
           },
@@ -90,6 +92,5 @@ export async function POST(req: NextRequest) {
       break
     }
   }
-
   return new NextResponse(null, { status: 200 })
 }
