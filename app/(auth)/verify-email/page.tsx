@@ -1,12 +1,13 @@
 
 import VerifyEmailComponent from "@/components/VerifyEmailComponent"
 import { getSessionData } from "@/lib/dal"
+import { Session } from "inspector";
 import { redirect } from "next/navigation"; // Import the redirect function
 
 export default async function VerifyEmailPage() {
   const session = await getSessionData('verifyEmail');
 
-  if (session.isAuth) {
+  if (!session.isAuth) {
     redirect('/'); // Redirect to the home page if the user is authenticated
   }
 

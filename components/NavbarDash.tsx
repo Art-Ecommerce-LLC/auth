@@ -62,13 +62,7 @@ export default function NavbarDash({ mfaVerified }: { mfaVerified: boolean }) {
 
       {/* Right-hand actions (desktop) */}
       <NavbarContent justify="end" className="items-center gap-4">
-        {mfaVerified && onSettingsPage && (            /* ← NEW block */
-          <NavbarItem className="hidden lg:flex">
-            <Button color="success" variant="solid" onPress={redirectDashboard}>
-                          Dashboard
-              </Button>
-          </NavbarItem>
-        )}
+        
 
         {mfaVerified && (
           <NavbarItem className="hidden lg:flex">
@@ -77,7 +71,13 @@ export default function NavbarDash({ mfaVerified }: { mfaVerified: boolean }) {
             </Link>
           </NavbarItem>
         )}
-
+        {mfaVerified && onSettingsPage && (            /* ← NEW block */
+          <NavbarItem className="hidden lg:flex">
+            <Button color="success" variant="solid" onPress={redirectDashboard}>
+                          Dashboard
+              </Button>
+          </NavbarItem>
+        )}
         {!mfaVerified && (
           <NavbarItem className="hidden lg:flex">
             <Link href="/sign-in">Login</Link>
@@ -113,7 +113,7 @@ export default function NavbarDash({ mfaVerified }: { mfaVerified: boolean }) {
                 className="w-full"
                 color={item === "Sign Out" ? "danger" : "foreground"}
                 href={href}
-                onClick={item === "Sign Out" ? signOut : undefined}
+                onPress={item === "Sign Out" ? signOut : undefined}
               >
                 {item}
               </Link>

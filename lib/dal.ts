@@ -4,181 +4,124 @@ import { cookies } from 'next/headers'
 import { decrypt } from './encrypt'
 import { cache } from 'react'
 import db from './db'
+import { SessionData } from '@/models/models'
 
 
-
-
-export const verifySession = cache(async () => {
-    const cookie = (await cookies()).get('session')?.value
-
-    if (!cookie) {
-        return { isAuth: false}
-    }
-    const session = await decrypt(cookie)
-   
-    if (!session.userId) {
-        return { isAuth: false}
-    }
-   
-    return { isAuth: true, userId: session.userId }
-})
-
-export const getUser = cache(async () => {
-    const session = await verifySession()
-    if (!session.isAuth) {
-        return { isAuth: false}
-    }
+export const getSessionData = cache(async (pageType: string): Promise<SessionData> => {
     try {
-        const user = await db.user.findUnique({
-            where: { 
-                id: session.userId
-            }
-        })
+        let session: SessionData = { isAuth: false };
+        const cookie = (await cookies()).get(pageType)?.value;
 
-        if (!user) {
-            return { isAuth: false}
-        }
-        
-        // eslint-disable-next-line no-unused-vars
-        const { password, email, updatedAt, createdAt, ...rest } = user;
-        return rest; // Return the modified user object
-
-    } catch (error) {
-        return { isAuth: false}
-    }
-})
-
-export const getOTPSession = cache(async () => {
-    const cookie = (await cookies()).get('otp')?.value
-    if (!cookie) {
-        return { isAuth: false}
-    }
-    try {
-        const session = await decrypt(cookie)
-    if (!session.userId) {
-        return { isAuth: false}
-    }
-
-    // Check if the user has an active OTP session
-    const otpSession = await db.oTP.findUnique({
-        where: {
-            userId: session.userId
-        }
-    })
-    if (!otpSession) {
-        return { isAuth: false}
-    }
-
-    return { isAuth: true }
-    } catch (error) {
-        return { isAuth: false}
-    }   
-})
-
-
-export const getVerifyEmailSession = cache(async () => {
-    const cookie = (await cookies()).get('verify-email')?.value
-    if (!cookie) {
-        return { isAuth: false}
-    }
-    const session = await decrypt(cookie)
-
-    if (!session.userId) {
-        return { isAuth: false}
-    }
-
-    try {
-        const emailVerification = await db.emailVerification.findUnique({
-            where: {
-                userId: session.userId
-            }
-        })
-        if (!emailVerification) {
-            return { isAuth: false}
-        }
-        return { isAuth: true }
-    } catch (error) {
-        return { isAuth: false}
-    }
-});
-
-export const getResetPasswordSession = cache(async () => {
-    const cookie = (await cookies()).get('resetPassword')?.value
-    if (!cookie) {
-        return { isAuth: false}
-    }
-    const session = await decrypt(cookie)
-    if (!session.userId) {
-        return { isAuth: false}
-    }
-    try {
-        // Check if the user has an active reset password session
-        const resetPassword = await db.resetPassword.findUnique({
-            where: {
-                userId: session.userId
-            }
-        })
-        if (!resetPassword) {
-            return { isAuth: false}
+        if (!cookie) {
+            return {
+                isAuth: false,
+                error: 'No session cookie found.'
+            };
         }
 
-        return { isAuth: true }
-    } catch (error) {
-        return { isAuth: false}
-    }
-});
+        const decryptedSession = await decrypt(cookie);
 
-export const getSession = cache(async () => {
-    const cookie = (await cookies()).get('session')?.value
-    if (!cookie) {
-        return { isAuth: false}
-    }
-    const session = await decrypt(cookie)
-    if (!session.userId) {
-        return { isAuth: false}
-    }
-    // Find the sessionid in the database
-    try {
-        const sessionDb = await db.session.findUnique({
-            where: {
-                id: session.sessionId
-            }
-        })
-        if (!sessionDb) {
-            return { isAuth: false}
+        if (!decryptedSession.userId) {
+            return {
+                isAuth: false,
+                error: 'Invalid session data.'
+            };
         }
-        return { isAuth: true, session: sessionDb }
-    } catch (error) {
-        return { isAuth: false}
-    }
-});
 
-export const getSessionData = cache(async (pageType: string) => {
-    try {
-        let session;
-        const user = await getUser()
+
         switch (pageType) {
             case 'resetPassword':
-                session = await getResetPasswordSession()
-                return { isAuth: session.isAuth, user };
+                const resetPasswordSession = await db.resetPassword.findUnique({
+                    where: { userId: decryptedSession.userId }
+                });
+                if (!resetPasswordSession) {
+                    return {
+                        isAuth: false,
+                        error: 'No reset password session found.'
+                    };
+                }
+                session = {
+                    isAuth: true,
+                };
+                
+                break;
             case 'verifyEmail':
-                session = await getVerifyEmailSession()
-                return { isAuth: session.isAuth, user };
+                const verifyEmailSession = await db.emailVerification.findUnique({
+                    where: { userId: decryptedSession.userId }
+                });
+                if (!verifyEmailSession) {
+                    return { 
+                        isAuth: false ,
+                        error: 'No email verification session found.'
+                    };
+                }
+                session = {
+                    isAuth: true,
+                };
+                break;
             case 'otp':
-                session = await getOTPSession()
-                return { isAuth: session.isAuth, user };
+                const otpSession = await db.oTP.findUnique({
+                    where: { userId: decryptedSession.userId }
+                });
+                if (!otpSession) {
+                    return { 
+                        isAuth: false,
+                        error: 'No OTP session found.'
+                    };
+                }
+                session = { 
+                    isAuth: true
+                };
+                break;
             case 'session':
-                session = await getSession()
-                if (!session) {
-                    return { isAuth: false }
+                const sessionDb = await db.session.findUnique({
+                    where: { id: decryptedSession.sessionId }
+                });
+                if (!sessionDb) {
+                    return { 
+                        isAuth: false, 
+                        error: 'No session found in the database.'
+                    };
                 }
-                if (!session.session) {
-                    return { isAuth: false }
+                if (!sessionDb.mfaVerified) {
+                    return { 
+                        isAuth: false, 
+                        mfaVerified: false,
+                        error: 'MFA not verified.'
+                    };
                 }
-                return { isAuth: session.isAuth, user, mfaVerified: session.session.mfaVerified };
+                session = { 
+                    isAuth: true, 
+                    mfaVerified: sessionDb.mfaVerified,
+                    userId: decryptedSession.userId
+                };
+                break;
             default:
-                return { isAuth: false }; 
-        }}catch (error) {
-        return { isAuth: false }
+                const user = await db.user.findUnique({
+                    where: { id: decryptedSession.userId }
+                });
+                if (!user) {
+                    return { 
+                        isAuth: false, 
+                        error: 'No user found in the database.'
+                    };
+                }
+                session = { 
+                    isAuth: true, 
+                    userId: user.id,
+                    username: user.username,
+                    email: user.email,
+                    emailVerified: user.emailVerified,
+                    role: user.role,
+                    planStatus: user.planStatus,
+                    serviceToken: user.serviceToken
+                };
+        }
+        return session;
+    } catch (error) {
+        return { 
+            isAuth: false, 
+            error: 'Something went wrong while fetching session data.'
+        };
     }
 });

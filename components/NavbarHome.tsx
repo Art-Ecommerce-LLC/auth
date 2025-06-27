@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import {Navbar, NavbarBrand, NavbarMenuToggle, NavbarMenuItem, NavbarMenu, NavbarContent, NavbarItem, Link, Button} from "@nextui-org/react";
+import {Navbar, NavbarBrand, NavbarMenuToggle, NavbarMenuItem, NavbarMenu, NavbarContent, NavbarItem, Link, Button} from "@heroui/react";
 import {AcmeLogo} from "./AcmeLogo";
 import { useSignOut } from "@/lib/signOut"; // Import the custom hook
 import { useRouter } from "next/navigation";
@@ -77,10 +77,10 @@ export default function NavbarHome({mfaVerified}: {mfaVerified : boolean}) {
         )}
         {mfaVerified ? (
           <div>
-            <Button color="warning" className="mr-2" variant="light" onClick={signOut}>
+            <Button color="warning" className="mr-2" variant="light" onPress={signOut}>
               Sign Out
             </Button>
-            <Button color="success" variant="solid" onClick={redirectDashboard}>
+            <Button color="success" variant="solid" onPress={redirectDashboard}>
               Dashboard
             </Button>
           </div>
@@ -107,10 +107,10 @@ export default function NavbarHome({mfaVerified}: {mfaVerified : boolean}) {
         ))}
          {mfaVerified && (
           <div className="absolute bottom-4 left-0 w-full px-4">
-            <Button color="warning" className="w-full mb-2" variant="ghost" onClick={signOut}>
+            <Button color="warning" className="w-full mb-2" variant="ghost" onPress={signOut}>
               Sign Out
             </Button>
-            <Button color="success" className="w-full" variant="solid" onClick={redirectDashboard}>
+            <Button color="success" className="w-full" variant="solid" onPress={redirectDashboard}>
               Dashboard
             </Button>
           </div>

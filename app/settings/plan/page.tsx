@@ -1,10 +1,10 @@
 // app/settings/plan/page.tsx
-import { requirePaidUser } from '@/lib/require-paid'
+import { getSessionData } from '@/lib/dal'
 import NavbarDashServer from '@/components/NavbarDashServer'
 import ChangePlan from '@/components/ChangePlanClient'
 
 export default async function PlanSettings() {
-  const user = await requirePaidUser()   // now already has role, planStatus, currentPeriodEnd
+  const session = await getSessionData('session');   // now already has role, planStatus, currentPeriodEnd
 
   return (
     <>
@@ -14,9 +14,9 @@ export default async function PlanSettings() {
 
         {/*  NEW props */}
         <ChangePlan
-          currentRole={user.role}
-          planStatus={user.planStatus}
-          periodEnd={user.currentPeriodEnd}
+          currentRole={session.role!}
+          planStatus={session.planStatus!}
+          periodEnd={session.currentPeriodEnd!}
         />
       </main>
     </>

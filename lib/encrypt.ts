@@ -4,6 +4,13 @@ import * as jose from 'jose'
 
 const secretKey = jose.base64url.decode(process.env.ENCRYPTION_SECRET!); // Ensure it's defined
 
+export interface SessionPayload {
+  userId?: string;
+  sessionId?: string;
+  expiresAt?: string;
+  token?: string;
+}
+
 // Function to encrypt a payload
 export async function encrypt(payload: Record<string, string | Date>): Promise<string> {
   try {
@@ -19,13 +26,13 @@ export async function encrypt(payload: Record<string, string | Date>): Promise<s
 }
 
 // Function to decrypt a payload
-export async function decrypt(encryptedPayload: string): Promise<Record<string,string>> {
+export async function decrypt(encryptedPayload: string): Promise<SessionPayload> {
   try {
 
     const { plaintext } = await jose.compactDecrypt(encryptedPayload, secretKey);
     const decodedPayload = new TextDecoder().decode(plaintext);
 
-    const payload = JSON.parse(decodedPayload);
+    const payload = JSON.parse(decodedPayload) as SessionPayload;
     if (payload.expiresAt && new Date(payload.expiresAt) < new Date(Date.now())){
       throw new Error('Token expired');
     }
