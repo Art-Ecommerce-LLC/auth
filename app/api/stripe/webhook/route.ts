@@ -4,15 +4,14 @@ import db from '@/lib/db'
 import { stripe } from '@/lib/stripe'
 import { Role, PlanStatus } from '@prisma/client'
 
-/* map the plan string in Checkout metadata → enum Role */
-export function planToRole(plan: 'plus' | 'base' | undefined): Role {
+function planToRole(plan: 'plus' | 'base'): Role {
   switch (plan) {
     case 'plus':
-      return Role.PLUS          // $12/mo
+      return Role.PLUS
     case 'base':
-      return Role.BASE          // $8/mo paid starter
+      return Role.BASE
     default:
-      return Role.USER          // default after sign-up, no dashboard access
+      throw new Error('Unknown plan type')
   }
 }
 
@@ -36,31 +35,35 @@ export async function POST(req: NextRequest) {
   switch (event.type) {
     /* 1️⃣  First payment succeeds */
     case 'checkout.session.completed': {
-      const s = event.data.object as Stripe.Checkout.Session
-      await db.user.update({
-        where: { id: s.metadata!.userId },
-        data : {
-          role         : planToRole(s.metadata!.plan as 'plus' | 'base'),
-          planStatus   : PlanStatus.active,
-          stripeCustomerId     : s.customer as string,
-          stripeSubscriptionId : s.subscription as string,
-        },
-      })
-      break
+      try {
+        const s = event.data.object as Stripe.Checkout.Session
+        await db.user.update({
+          where: { id: s.metadata!.userId },
+          data : {
+            role         : planToRole(s.metadata!.plan as 'plus' | 'base'),
+            planStatus   : PlanStatus.active,
+            stripeCustomerId     : s.customer as string,
+            stripeSubscriptionId : s.subscription as string,
+          },
+        })
+      } catch (err) {
+        console.error('⚠️  Error updating user after checkout session:', err)
+        return new NextResponse('Error updating user', { status: 500 })
+      }
+      
     }
 
     /* 2️⃣  Grace-period cancel or re-activate */
     case 'customer.subscription.updated': {
       const sub = event.data.object as Stripe.Subscription
       //  Check what role the user changed to
-      
-      if (sub.cancel_at_period_end) {
+      if (sub.cancel_at) {
         await db.user.update({
           where: { stripeSubscriptionId: sub.id },
           data : {
             role                : Role.USER,          // ⬅️ back to free tier
-            planStatus      : PlanStatus.canceling,
-            currentPeriodEnd: new Date(sub.items.data[0].current_period_end * 1000),
+            planStatus          : PlanStatus.canceling,
+            currentPeriodEnd    : new Date(sub.items.data[0].current_period_end * 1000),
           },
         })
       } else if (sub.status === 'active') {
@@ -77,19 +80,35 @@ export async function POST(req: NextRequest) {
       break
     }
 
-    /* 3️⃣  Final deletion (period end or immediate) */
     case 'customer.subscription.deleted': {
-      const sub = event.data.object as Stripe.Subscription
-      await db.user.update({
-        where: { stripeSubscriptionId: sub.id },
-        data : {
-          role                : Role.USER,          // ⬅️ back to free tier
-          planStatus          : PlanStatus.canceled,
-          stripeSubscriptionId: null,
-          currentPeriodEnd    : null,
-        },
-      })
-      break
+  const sub = event.data.object as Stripe.Subscription;
+  const periodEndTs = sub.items.data[0].current_period_end * 1000;
+  const canceledAtTs = (sub.canceled_at ?? 0) * 1000;
+  const periodEnd = new Date(periodEndTs);
+
+  // If Stripe deleted the subscription before the period end,
+  // the user still has paid-for time — keep their existing role.
+  if (canceledAtTs < periodEndTs) {
+    await db.user.update({
+      where: { stripeSubscriptionId: sub.id },
+      data: {
+        planStatus:   PlanStatus.canceled,
+        currentPeriodEnd: periodEnd,
+        // role is unchanged (still PLUS or BASE)
+      },
+    });
+  } else {
+    // Subscription ended at or after period end → revoke premium access
+    await db.user.update({
+      where: { stripeSubscriptionId: sub.id },
+      data: {
+        role:         Role.USER,
+        planStatus:   PlanStatus.canceled,
+        currentPeriodEnd: periodEnd,
+      },
+    });
+  }
+  break;
     }
   }
   return new NextResponse(null, { status: 200 })

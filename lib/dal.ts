@@ -90,10 +90,28 @@ export const getSessionData = cache(async (pageType: string): Promise<SessionDat
                         error: 'MFA not verified.'
                     };
                 }
+                if (!sessionDb.userId) {
+                    return { 
+                        isAuth: false, 
+                        error: 'No user ID found in the session.'
+                    };
+                }
+                // Get some of the user data from the session
+                const userDB = await db.user.findUnique({
+                    where: { id: sessionDb.userId }
+                });
+                if (!userDB) {
+                    return {
+                        isAuth: false, 
+                        error: 'No user found in the database.'
+                    };
+                }
                 session = { 
                     isAuth: true, 
                     mfaVerified: sessionDb.mfaVerified,
-                    userId: decryptedSession.userId
+                    userId: decryptedSession.userId,
+                    email: userDB.email,
+                    role: userDB.role,
                 };
                 break;
             default:

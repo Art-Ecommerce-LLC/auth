@@ -100,7 +100,7 @@ export function OTPForm() {
               variant: "success",
               description: "OTP verified",
           })
-          router.push('/dashboard');
+          router.push('/select-plan');
       }
     } catch (error) {
       toast({

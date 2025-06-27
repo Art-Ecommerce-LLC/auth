@@ -8,7 +8,7 @@ export default async function SelectPlanPage() {
     if (!session.mfaVerified) {
         redirect('/sign-in');
       }
-    if ('role' in session.user && session.user.role !== 'USER') {
+    if (session.role !== 'USER') {
         redirect('/dashboard');
     }
 
