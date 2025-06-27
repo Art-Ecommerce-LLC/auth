@@ -22,7 +22,31 @@ export default function PermitTable({ permits, selectedId, onSelect }: TableProp
   const sortBy = (key: keyof Permit) => { if (sortKey === key) setSortAsc(s => !s); else { setSortKey(key); setSortAsc(true); }};
   const filtered = permits
     .filter(p => (p.description ?? '').toLowerCase().includes(search.toLowerCase()))
-    .sort((a,b) => { const aVal = a[sortKey] as any, bVal = b[sortKey] as any; if(aVal==null) return 1; if(bVal==null) return -1; if(typeof aVal==='number'&&typeof bVal==='number') return sortAsc? aVal-bVal : bVal-aVal; return sortAsc? String(aVal).localeCompare(String(bVal)) : String(bVal).localeCompare(String(aVal)); });
+    .sort((a, b) => {
+      const aVal = a[sortKey];
+      const bVal = b[sortKey];
+
+      if (aVal == null) return 1;
+      if (bVal == null) return -1;
+
+      // Handle sorting based on the type of the sortKey
+      if (sortKey === 'lead_price') {
+        // number
+        return sortAsc
+          ? (aVal as number) - (bVal as number)
+          : (bVal as number) - (aVal as number);
+      }
+      if (sortKey === 'issue_date') {
+        // string (date)
+        const aDate = new Date(aVal as string).getTime();
+        const bDate = new Date(bVal as string).getTime();
+        return sortAsc ? aDate - bDate : bDate - aDate;
+      }
+      // description (string)
+      return sortAsc
+        ? String(aVal).localeCompare(String(bVal))
+        : String(bVal).localeCompare(String(aVal));
+    });
 
   return (
     <Card>

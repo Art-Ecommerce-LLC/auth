@@ -1,30 +1,36 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import type { Permit } from '@/types/permit';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import SummaryCards from './SummaryCards';
 import FilterPanel from './FilterPanel';
 import PermitTable from './PermitTable';           // default import of default-exported component
-import PermitMap from './PermitMap';               // default import of 
+import PermitMap from './PermitMap';  
+import type { Permit as PrismaPermit } from '@prisma/client';
 
-interface Props { permits: Permit[]; }
-
-export default function DashboardClient({ permits }: Props) {
+interface DashboardClientProps {
+  permits: PrismaPermit[];
+}
+export default function DashboardClient({ permits }: DashboardClientProps) {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const filtered = useMemo(() =>
     permits
-      .filter(p => roleFilter === 'all' || p.recommended_roles?.includes(roleFilter))
+      .filter(
+        p =>
+          roleFilter === 'all' ||
+          (Array.isArray(p.recommendedRoles) &&
+            p.recommendedRoles.includes(roleFilter))
+      )
       .filter(p => p.description?.toLowerCase().includes(search.toLowerCase())),
     [permits, roleFilter, search]
   );
 
   const markerData = useMemo(
-    () => filtered.map(p => ({ id: p.permit_number, lat: p.latitude, lon: p.longitude })),
+    () => filtered.map(p => ({ id: p.permitNumber, lat: p.latitude, lon: p.longitude })),
     [filtered]
   );
 
@@ -35,7 +41,13 @@ export default function DashboardClient({ permits }: Props) {
 
       <div className="flex flex-col md:flex-row gap-6">
         <FilterPanel
-          roles={Array.from(new Set(permits.flatMap(p => p.recommended_roles || [])))}
+          roles={Array.from(
+            new Set(
+              permits
+                .flatMap(p => p.recommendedRoles || [])
+                .filter((role): role is string => typeof role === 'string')
+            )
+          )}
           selectedRole={roleFilter}
           onRoleChange={setRoleFilter}
           search={search}

@@ -21,14 +21,6 @@ export default async function Dashboard() {
   return (
     <>
       <NavbarDashServer />
-
-      {session.role === 'ADMIN'
-        ? <AdminDashboard />
-        : <UserDashboard />
-      }
-
-
-      {/* this will fetch + render the client grid/map */}
       <PermitServer userId={session.userId!} />
     </>
   )

@@ -4,6 +4,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import Map, { Source, Layer, Popup } from 'react-map-gl/maplibre';
 import { useEffect, useMemo, useState, useRef } from 'react';
 import type { FeatureCollection, Feature, Point } from 'geojson';
+import type { MapRef } from 'react-map-gl/maplibre';
 
 interface MarkerDatum { id: string; lat: number; lon: number; }
 interface MapProps { permits: MarkerDatum[]; selectedId: string | null; onSelect: (id: string) => void; }
@@ -16,7 +17,7 @@ export default function PermitMapClient({ permits, selectedId, onSelect }: MapPr
     }), [permits]
   );
 
-  const mapRef = useRef<any>(null);
+  const mapRef = useRef<MapRef | null>(null);
   useEffect(() => {
     if (!selectedId) return;
     const tgt = permits.find(p => p.id === selectedId);

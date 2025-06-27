@@ -80,10 +80,10 @@ export function PlanSelectionForm() {
         duration: 4000,
       });
       router.push(json.url);
-    } catch (err: any) {
+    } catch (err) {
       toast({
         variant: "destructive",
-        description: err.message ?? "Something went wrong",
+        description: (err as Error).message ?? "Something went wrong",
         duration: 5000,
       });
       setLoading(false);
