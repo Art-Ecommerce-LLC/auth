@@ -35,7 +35,7 @@ export default function PermitMapClient({ permits, selectedId, onSelect }: MapPr
       mapStyle="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
       interactiveLayerIds={['cluster-count', 'unclustered']}
       onClick={e => {
-        const f = e.features?.[0] as any;
+        const f = e.features?.[0] as unknown as Feature<Point, { id: string; cluster?: boolean }>;
         if (f?.properties?.cluster) {
           mapRef.current?.flyTo({ center: e.lngLat, zoom: mapRef.current?.getZoom() + 2, duration: 400 });
         } else if (f?.properties?.id) {
