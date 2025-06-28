@@ -59,7 +59,7 @@ config = EnvConfig()
 # Runtime flags & feature toggles  ───────────────
 # ────────────────────────────────────────────────
 DISABLE_EMAILS: bool = False   # Skip SMTP if True (dev / testing)
-REPROCESS_ALL: bool = False  # Ignore latest_issue_date and re‑pull 90 d of data
+REPROCESS_ALL: bool = False  # Make this true when deploying
 
 # ────────────────────────────────────────────────
 # Geospatial constants for Encinitas  ────────────
