@@ -125,12 +125,9 @@ model Permit {
   urgency                String
   projectValue           String   @map("project_value")
   recommendedRoles       Json     @map("recommended_roles")
-  guideJson              Json     @map("guide_json")
   hotness                Int
   alertSent              Boolean  @default(false) @map("alert_sent")
   reasoningSummary       String   @map("reasoning_summary")
-  estimatedValuePerRole  Json     @map("estimated_value_per_role")
-  leadPrice              Float    @map("lead_price")
   needsMorePermits       Boolean  @default(false) @map("needs_more_permits")
   nextSteps              String   @map("next_steps")
   createdAt              DateTime @default(now()) @map("created_at")

@@ -151,9 +151,8 @@ class SupabaseService:
 
 class PermitAI:
     REQUIRED_FIELDS = [
-        'urgency', 'value', 'recommended_roles', 'guide_json',
-        'reasoning_summary', 'estimated_value_per_role',
-        'lead_price', 'needs_more_permits', 'next_steps'
+        'urgency', 'value', 'recommended_roles', 
+        'reasoning_summary', 'needs_more_permits', 'next_steps'
     ]
 
     @staticmethod
@@ -170,10 +169,7 @@ class PermitAI:
                         "urgency": {"type": "string"},
                         "value": {"type": "string"},
                         "recommended_roles": {"type": "array", "items": {"type": "string"}},
-                        "guide_json": {"type": "object"},
                         "reasoning_summary": {"type": "string"},
-                        "estimated_value_per_role": {"type": "object"},
-                        "lead_price": {"type": "number", "minimum": 0},
                         "needs_more_permits": {"type": "boolean"},
                         "next_steps": {"type": "string"}
                     },
@@ -236,7 +232,6 @@ class PermitAI:
         # Fallback defaults
         now_iso = datetime.utcnow().isoformat()
         ai_output.setdefault('id', str(uuid.uuid4()))
-        ai_output.setdefault('estimated_value_per_role', {})
         ai_output['created_at'] = now_iso
         ai_output['updated_at'] = now_iso
 
@@ -314,8 +309,6 @@ class PermitNotifier:
                 Type: {record.get("CaseType")}
                 Status: {record.get("status")}
                 Issued: {record.get("issue_date")}
-                Guide: {record.get("guide")}
-                Lead Price: ${record.get("lead_price", "TBD")}
                 Link: https://portal.encinitasca.gov/CustomerSelfService"""
         )
         msg["Subject"] = "🚨 New Permit Alert"
@@ -404,23 +397,16 @@ class PermitProcessor:
             "urgency": ai_data.get("urgency"),
             "project_value": ai_data.get("value"),
             "recommended_roles": roles,
-            "guide_json": {role: f"Strategy for {role.title()}: {ai_data.get('guide')}" for role in roles},
             "hotness": hotness_score,
             "alert_sent": False,
             "reasoning_summary": ai_data.get("reasoning_summary"),
-            "estimated_value_per_role": ai_data.get("estimated_value_per_role"),
-            "lead_price": ai_data.get("lead_price"),
             "needs_more_permits": ai_data.get("needs_more_permits", False),
             "next_steps": ai_data.get("next_steps", ""),
         }
 
-        for role in roles:
-            guide = f"Strategy for {role.title()}: {ai_data.get('guide')}"
-            payload["guide_json"][role] = guide
-
         if existing:
             existing = existing[0]
-            missing_fields = any(existing.get(k) is None for k in ["urgency", "project_value", "recommended_roles", "estimated_value_per_role"])
+            missing_fields = any(existing.get(k) is None for k in ["urgency", "project_value", "recommended_roles"])
             if existing["raw_hash"] != hash_val or missing_fields:
                 self.supabase.update_permit(permit_number, payload)
                 return "updated"
@@ -448,8 +434,6 @@ class PermitProcessor:
 
             if match_type == "role" and match_value in roles:
                 record_copy = record.copy()
-                guide_json = record.get("guide_json", {})
-                record_copy["guide_json"] = guide_json.get(match_value, "")
                 print(f"📧 Match found for {sub['email']}, sending alert...")
                 self.notifier.send(sub["email"], record_copy)
                 self.supabase.mark_alert_sent(record.get("permit_number"))

@@ -29,13 +29,6 @@ export default function PermitTable({ permits, selectedId, onSelect }: TableProp
       if (aVal == null) return 1;
       if (bVal == null) return -1;
 
-      // Handle sorting based on the type of the sortKey
-      if (sortKey === 'leadPrice') {
-        // number
-        return sortAsc
-          ? (aVal as number) - (bVal as number)
-          : (bVal as number) - (aVal as number);
-      }
       if (sortKey === 'issueDate') {
         // string (date)
         const aDate = new Date(aVal as string).getTime();
@@ -60,14 +53,13 @@ export default function PermitTable({ permits, selectedId, onSelect }: TableProp
             <thead className="sticky top-0 z-10 bg-white shadow-sm"><tr>
               <th onClick={()=>sortBy('description')} className={cn('cursor-pointer px-4 py-2 text-left', sortKey==='description'&&'font-semibold text-primary')}>Description<ArrowUp/></th>
               <th onClick={()=>sortBy('issueDate')} className={cn('cursor-pointer px-4 py-2 text-left', sortKey==='issueDate'&&'font-semibold text-primary')}>Issue Date<ArrowUp /></th>
-              <th onClick={()=>sortBy('leadPrice')} className={cn('cursor-pointer px-4 py-2 text-left', sortKey==='leadPrice'&&'font-semibold text-primary')}>Lead Price<ArrowUp /></th>
+             
             </tr></thead>
             <tbody>
               {filtered.map(p=> (
                 <tr key={p.permitNumber} ref={el => { rowRefs.current[p.permitNumber] = el; }} onClick={()=>onSelect(p.permitNumber)} className={cn('cursor-pointer hover:bg-muted', selectedId===p.permitNumber&&'bg-primary/10')}>
                   <td className="px-4 py-2" title={p.description||''}>{p.description?.slice(0,80)}{p.description&&p.description.length>80?'…':''}</td>
                   <td className="px-4 py-2">{new Intl.DateTimeFormat('en-US',{dateStyle:'medium'}).format(new Date(p.issueDate))}</td>
-                  <td className={cn('px-4 py-2',p.leadPrice&&p.leadPrice>1000?'text-red-600':'text-green-600')}>{p.leadPrice!=null?`$${p.leadPrice.toFixed(2)}`:'—'}</td>
                 </tr>
               ))}
               {filtered.length===0&&<tr><td colSpan={3} className="px-4 py-2 text-center text-muted-foreground">No permits found.</td></tr>}
