@@ -112,6 +112,7 @@ export const getSessionData = cache(async (pageType: string): Promise<SessionDat
                     userId: decryptedSession.userId,
                     email: userDB.email,
                     role: userDB.role,
+                    planStatus: userDB.planStatus,
                 };
                 break;
             default:

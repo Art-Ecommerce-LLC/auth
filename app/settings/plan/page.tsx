@@ -5,7 +5,7 @@ import ChangePlan from '@/components/ChangePlanClient'
 
 export default async function PlanSettings() {
   const session = await getSessionData('session');   // now already has role, planStatus, currentPeriodEnd
-
+  console.log("PlanSettings session:", session);
   return (
     <>
       <NavbarDashServer />

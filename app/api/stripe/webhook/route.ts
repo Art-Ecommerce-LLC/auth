@@ -37,11 +37,19 @@ export async function POST(req: NextRequest) {
     case 'checkout.session.completed': {
       try {
         const s = event.data.object as Stripe.Checkout.Session
+        // Get the next bill date from the customer's id
+        const customer = await stripe.subscriptionItems.retrieve(
+          s.subscription as string,
+          { expand: ['data'] }
+        )
+        const current_period_end = customer.current_period_end
+        console.log(new Date(current_period_end * 1000))
         await db.user.update({
           where: { id: s.metadata!.userId },
           data : {
             role         : planToRole(s.metadata!.plan as 'plus' | 'base'),
             planStatus   : PlanStatus.active,
+            currentPeriodEnd: new Date(current_period_end * 1000),
             stripeCustomerId     : s.customer as string,
             stripeSubscriptionId : s.subscription as string,
           },
@@ -56,7 +64,7 @@ export async function POST(req: NextRequest) {
     /* 2️⃣  Grace-period cancel or re-activate */
     case 'customer.subscription.updated': {
       const sub = event.data.object as Stripe.Subscription
-      //  Check what role the user changed to
+
       if (sub.cancel_at) {
         await db.user.update({
           where: { stripeSubscriptionId: sub.id },
@@ -69,7 +77,11 @@ export async function POST(req: NextRequest) {
       } else if (sub.status === 'active') {
         await db.user.update({
           where: { stripeSubscriptionId: sub.id },
-          data : { planStatus: PlanStatus.active },
+          data : { 
+            planStatus: PlanStatus.active,
+            role: planToRole(sub.items.data[0].plan.nickname as 'plus' | 'base'),
+            currentPeriodEnd: new Date(sub.items.data[0].current_period_end * 1000),
+          },
         })
       } else if (sub.status === 'past_due') {
         await db.user.update({
@@ -81,33 +93,33 @@ export async function POST(req: NextRequest) {
     }
 
     case 'customer.subscription.deleted': {
-  const sub = event.data.object as Stripe.Subscription;
-  const periodEndTs = sub.items.data[0].current_period_end * 1000;
-  const canceledAtTs = (sub.canceled_at ?? 0) * 1000;
-  const periodEnd = new Date(periodEndTs);
+    const sub = event.data.object as Stripe.Subscription;
+    const periodEndTs = sub.items.data[0].current_period_end * 1000;
+    const canceledAtTs = (sub.canceled_at ?? 0) * 1000;
+    const periodEnd = new Date(periodEndTs);
 
-  // If Stripe deleted the subscription before the period end,
-  // the user still has paid-for time — keep their existing role.
-  if (canceledAtTs < periodEndTs) {
-    await db.user.update({
-      where: { stripeSubscriptionId: sub.id },
-      data: {
-        planStatus:   PlanStatus.canceled,
-        currentPeriodEnd: periodEnd,
-        // role is unchanged (still PLUS or BASE)
-      },
-    });
-  } else {
-    // Subscription ended at or after period end → revoke premium access
-    await db.user.update({
-      where: { stripeSubscriptionId: sub.id },
-      data: {
-        role:         Role.USER,
-        planStatus:   PlanStatus.canceled,
-        currentPeriodEnd: periodEnd,
-      },
-    });
-  }
+    // If Stripe deleted the subscription before the period end,
+    // the user still has paid-for time — keep their existing role.
+    if (canceledAtTs < periodEndTs) {
+      await db.user.update({
+        where: { stripeSubscriptionId: sub.id },
+        data: {
+          planStatus:   PlanStatus.canceled,
+          currentPeriodEnd: periodEnd,
+          // role is unchanged (still PLUS or BASE)
+        },
+      });
+    } else {
+      // Subscription ended at or after period end → revoke premium access
+      await db.user.update({
+        where: { stripeSubscriptionId: sub.id },
+        data: {
+          role:         Role.USER,
+          planStatus:   PlanStatus.canceled,
+          currentPeriodEnd: periodEnd,
+        },
+      });
+    }
   break;
     }
   }
