@@ -34,4 +34,4 @@ jobs:
           pip install requests python-dotenv supabase openai
 
       - name: Run script
-        run: python auth/permits/fetch_and_save_permits.py
+        run: python permits/fetch_and_save_permits.py
