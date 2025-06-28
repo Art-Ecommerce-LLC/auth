@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
             return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/404`)
         }
 
-        const isValidToken = await compare(sessionCookie.token, sessionData.token);
+        const isValidToken = await compare(sessionCookie.token!, sessionData.token!);
 
         if (!isValidToken) {
             return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/404`)

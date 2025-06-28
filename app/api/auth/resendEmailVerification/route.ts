@@ -27,7 +27,7 @@ export async function POST(request : NextRequest) {
         }
 
         // Compare the session token
-        const isValid = await compare(sessionCookie.token, sessionData.token)
+        const isValid = await compare(sessionCookie.token!, sessionData.token!);
 
         if (!isValid) {
             return NextResponse.json({ error: "Invalid session" }, { status: 401 })

@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
 
         // Compare otp session and otp token
         const isValid = await compare(otp, sessionData.otp)
-        const isValidToken = await compare(sessionCookie.token, sessionData.token)
+        const isValidToken = await compare(sessionCookie.token!, sessionData.token!)
         if (!isValid || !isValidToken) {
             return NextResponse.json({error:"Invalid OTP or Token"}, {status:401})
         }
@@ -69,19 +69,19 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({error: "No Session"}, {status: 200})
         }
 
-        const isValidSessionToken = await compare(decryptedSessionCookie.token, sessionDB.token)
+        const isValidSessionToken = await compare(decryptedSessionCookie.token!, sessionDB.token!)
 
         if (!isValidSessionToken) {
             return NextResponse.json({error: "No Valid Session Token"}, {status: 200})
         }
         // Create a new base session with mfa verified
         await manageSession({
-            userId: sessionCookie.userId,
+            userId: sessionCookie.userId!,
             sessionType: 'session',
             mfaVerified: true,
             sessionId: sessionCookie.sessionId,
         })
-        await deleteSession({userId: sessionCookie.userId, cookieNames: ['otp'], request})
+        await deleteSession({userId: sessionCookie.userId!, cookieNames: ['otp'], request})
         
 
         return NextResponse.json({success:"OTP validated successfully"}, {status:200})

@@ -44,8 +44,8 @@ export async function POST(request: NextRequest) {
         if (!sessionData) {
             return NextResponse.json({ error: 'Session not found' }, { status: 404 })
         }
-        
-        const isValidateToken = await bcrypt.compare(session.token, sessionData.token)
+
+        const isValidateToken = await bcrypt.compare(session.token!, sessionData.token!)
 
         if (!isValidateToken) {
             return NextResponse.json({ error: 'Invalid session' }, { status: 404 })

@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Compare otp session and otp token
-        const isValid = await compare(sessionCookie.token, sessionData.token)
+        const isValid = await compare(sessionCookie.token!, sessionData.token!);
 
         if (!isValid) {
             console.log("Invalid session")

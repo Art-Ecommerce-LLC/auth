@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Session not found" }, { status: 404 });
         }
         // Delete all sessions
-        await deleteSession({ userId: decryptedSession.userId, cookieNames: ['session'], request, deleteAllSessions: true });
+        await deleteSession({ userId: decryptedSession.userId!, cookieNames: ['session'], request, deleteAllSessions: true });
 
 
         return NextResponse.json({ success: "Session deleted" }, { status: 200 });

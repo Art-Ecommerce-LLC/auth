@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
 
 
         // Compare the token to the token in the databse with bcrypt
-        const isTokenValid = await compare(sessionCookie.token, sessionDBData.token);
+        const isTokenValid = await compare(sessionCookie.token!, sessionDBData.token!);
 
         if (!isTokenValid) {
             console.log('Token is invalid')
