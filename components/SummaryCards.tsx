@@ -1,9 +1,9 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { Permit } from '@/types/permit';
+import type { Permit as PrismaPermit } from '@prisma/client';
 
-interface Props { permits: Permit[]; }
+interface Props { permits: PrismaPermit[]; }
 export default function SummaryCards({ permits }: Props) {
   const total = permits.length;
   const high = permits.filter(p => p.urgency === 'high').length;

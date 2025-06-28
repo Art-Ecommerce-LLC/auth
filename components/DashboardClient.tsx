@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import SummaryCards from './SummaryCards';
 import FilterPanel from './FilterPanel';
 import PermitTable from './PermitTable';           // default import of default-exported component
