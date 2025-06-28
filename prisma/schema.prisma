@@ -135,4 +135,17 @@ model Permit {
   nextSteps              String   @map("next_steps")
   createdAt              DateTime @default(now()) @map("created_at")
   updatedAt              DateTime @updatedAt @map("updated_at")
+
+  @@map("permits")
+}
+
+model Subscription {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  matchType      String   @map("match_type")
+  matchValue     String   @map("match_value")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@map("subscriptions")
 }

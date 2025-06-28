@@ -14,6 +14,7 @@ from jsonschema import validate, ValidationError
 from dateutil.parser import parse as parse_date  # Optional if needed elsewhere
 from math import radians, cos, sin, asin, sqrt
 import sys
+import uuid
 # ────────────────────────────────────────────────
 # Environment Configuration ───────────────────────
 # ────────────────────────────────────────────────
@@ -102,6 +103,11 @@ class SupabaseService:
         return self.client.table("permits").select("*").eq("permit_number", permit_number).execute().data
 
     def insert_permit(self, payload):
+        # Final sanity check and timestamp defaults
+        now_iso = datetime.utcnow().isoformat()
+        payload['id'] = payload.get('id') or str(uuid.uuid4())
+        payload['created_at'] = payload.get('created_at') or now_iso
+        payload['updated_at'] = payload.get('updated_at') or now_iso
         return self.client.table("permits").insert(payload).execute()
 
     def update_permit(self, permit_number, payload):
@@ -109,7 +115,7 @@ class SupabaseService:
 
     def mark_alert_sent(self, permit_number):
         return self.client.table("permits").update({"alert_sent": True}).eq("permit_number", permit_number).execute()
-    
+
     def delete_old_permits(self, days_old=90):
         cutoff_date = (datetime.utcnow() - timedelta(days=days_old)).date().isoformat()
         print(f"🧹 Deleting permits older than {cutoff_date}")
@@ -144,108 +150,98 @@ class SupabaseService:
     
 
 class PermitAI:
+    REQUIRED_FIELDS = [
+        'urgency', 'value', 'recommended_roles', 'guide_json',
+        'reasoning_summary', 'estimated_value_per_role',
+        'lead_price', 'needs_more_permits', 'next_steps'
+    ]
+
     @staticmethod
     def enrich(record):
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-        DEFAULTS = {
-            "urgency": "medium",
-            "value": "medium",
-            "recommended_roles": [],
-            "guide_json": {},
-            "reasoning_summary": "",
-            "estimated_value_per_role": {},
-            "lead_price": 0,
-            "needs_more_permits": False,
-            "next_steps": "",
+        functions = [
+            {
+                "name": "format_permit_analysis",
+                "description": "Analyze permit data and return structured JSON without nulls",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "urgency": {"type": "string"},
+                        "value": {"type": "string"},
+                        "recommended_roles": {"type": "array", "items": {"type": "string"}},
+                        "guide_json": {"type": "object"},
+                        "reasoning_summary": {"type": "string"},
+                        "estimated_value_per_role": {"type": "object"},
+                        "lead_price": {"type": "number", "minimum": 0},
+                        "needs_more_permits": {"type": "boolean"},
+                        "next_steps": {"type": "string"}
+                    },
+                    "required": PermitAI.REQUIRED_FIELDS,
+                    "additionalProperties": False
+                }
+            }
+        ]
+
+        def call_ai(messages):
+            return client.chat.completions.create(
+                model="gpt-4o",
+                messages=messages,
+                functions=functions,
+                function_call={"name": "format_permit_analysis"}
+            )
+
+        # Base conversation
+        system_message = {
+            "role": "system",
+            "content": (
+                "You are an expert in construction and real estate lead generation. "
+                "Return complete JSON for all fields; never null or omitted."
+            )
+        }
+        user_message = {
+            "role": "user",
+            "content": (
+                f"Description: {record.get('Description') or ''}\n"
+                f"Type: {record.get('CaseType') or ''}\n"
+                f"Project: {record.get('ProjectName') or ''}\n"
+                "Be explicit about whether this is a real estate lead."
+            )
         }
 
-        base_prompt = (
-            f"You are a construction and real estate industry expert. Analyze this permit data and determine urgency, value, and recommended roles. Respond in JSON format:\n"
-            f"Description: {record.get('Description')}\n"
-            f"Type: {record.get('CaseType')}\n"
-            f"Project: {record.get('ProjectName')}\n"
-            "Include 'real_estate_agent' in recommended_roles if applicable. Provide a concise reasoning_summary explaining your recommendations."
-        )
+        messages = [system_message, user_message]
+        ai_output = {}
 
-        detailed_prompt_template = (
-            "You previously recommended these roles: {roles}. Respond in JSON format and for each role provide:\n"
-            "  • guide_json.<role>.guide: 3-4 actionable steps specific to that role.\n"
-            "  • guide_json.<role>.details: a 1-2 sentence explanation of the role's responsibilities.\n"
-            "Assign a numeric USD estimate for each role’s total project cost in estimated_value_per_role. Ensure completeness and accuracy."
-        )
+        # Loop until all required fields are non-null
+        while True:
+            response = call_ai(messages)
+            ai_output = json.loads(response.choices[0].message.function_call.arguments)
 
-        user_msg_base = {"role": "user", "content": base_prompt}
+            missing = [
+                field for field in PermitAI.REQUIRED_FIELDS
+                if ai_output.get(field) in (None, '', [], {})
+            ]
+            if not missing:
+                break
 
-        try:
-            response_base = client.chat.completions.create(
-                model="gpt-4.1",
-                messages=[{"role": "system", "content": "You are a helpful assistant. Respond strictly in JSON."}, user_msg_base],
-                temperature=0.0,
-                max_tokens=512
-            )
-
-            content_base = response_base.choices[0].message.content
-            parsed_base = json.loads(content_base.strip()) if content_base else {}
-
-            roles = parsed_base.get("recommended_roles", [])
-
-            if not roles:
-                print("❌ No roles recommended, skipping detailed enrichment.")
-                return DEFAULTS
-
-            detailed_prompt = detailed_prompt_template.format(roles=', '.join(roles))
-            user_msg_detailed = {"role": "user", "content": detailed_prompt}
-
-            response_detailed = client.chat.completions.create(
-                model="gpt-4.1",
-                messages=[{"role": "system", "content": "You are a helpful assistant. Respond strictly in JSON."}, user_msg_detailed],
-                temperature=0.0,
-                max_tokens=1024
-            )
-
-            content_detailed = response_detailed.choices[0].message.content
-            parsed_detailed = json.loads(content_detailed.strip()) if content_detailed else {}
-
-            parsed = {**DEFAULTS, **parsed_base, **parsed_detailed}
-
-            schema = {
-                "type": "object",
-                "properties": {
-                    "urgency": {"type": "string"},
-                    "value": {"type": "string"},
-                    "recommended_roles": {"type": "array"},
-                    "guide_json": {"type": "object"},
-                    "reasoning_summary": {"type": "string"},
-                    "estimated_value_per_role": {"type": "object"},
-                    "lead_price": {"type": "number"},
-                    "needs_more_permits": {"type": "boolean"},
-                    "next_steps": {"type": "string"}
-                },
-                "required": list(DEFAULTS.keys())
+            reprompt = {
+                "role": "user",
+                "content": (
+                    f"Your output missed fields: {missing}. "
+                    "Please provide values for these fields only."
+                )
             }
-            validate(instance=parsed, schema=schema)
+            messages = [system_message, user_message, reprompt]
 
-            parsed["lead_price"] = min(parsed.get("lead_price", 0), 500)
+        # Fallback defaults
+        now_iso = datetime.utcnow().isoformat()
+        ai_output.setdefault('id', str(uuid.uuid4()))
+        ai_output.setdefault('estimated_value_per_role', {})
+        ai_output['created_at'] = now_iso
+        ai_output['updated_at'] = now_iso
 
-            with open("permit_ai_response.json", "w") as f:
-                json.dump(parsed, f, indent=2)
+        return ai_output
 
-            print(f"✅ PermitAI.enrich response: {parsed}")
-            return parsed
-
-        except ValidationError as ve:
-            print(f"❌ Schema validation error in PermitAI.enrich: {ve}")
-            traceback.print_exc()
-            return DEFAULTS
-        except json.JSONDecodeError as je:
-            print(f"❌ JSON decode error in PermitAI.enrich: {je}")
-            traceback.print_exc()
-            return DEFAULTS
-        except Exception as e:
-            print(f"❌ Unexpected error in PermitAI.enrich: {e}")
-            traceback.print_exc()
-            return DEFAULTS
 
 class Geocoder:
     """Wrapper around Mapbox Geocoding with Encinitas safeguards."""

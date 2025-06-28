@@ -1,0 +1,25 @@
+{
+  "urgency": "low",
+  "value": "unknown",
+  "recommended_roles": [
+    "real_estate_agent"
+  ],
+  "guide_json": {
+    "real_estate_agent": {
+      "guide": [
+        "Research the local property market to understand current trends and pricing.",
+        "List the property on multiple platforms and market it to potential buyers.",
+        "Coordinate and conduct property showings for interested clients.",
+        "Negotiate offers and facilitate the closing process between buyers and sellers."
+      ],
+      "details": "A real estate agent assists clients in buying, selling, or renting properties. They handle market research, property listings, showings, negotiations, and guide clients through the transaction process."
+    }
+  },
+  "reasoning_summary": "The permit type is 'Solicitor', which typically relates to sales or marketing activities rather than construction. The project description 'Fruitland' is vague and does not indicate active development or construction. Including a real_estate_agent is recommended, as their expertise is relevant for property sales or marketing efforts. No immediate construction roles are necessary based on the provided information.",
+  "estimated_value_per_role": {
+    "real_estate_agent": 8000
+  },
+  "lead_price": 0,
+  "needs_more_permits": false,
+  "next_steps": ""
+}
