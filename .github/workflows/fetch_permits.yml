@@ -31,7 +31,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install requests python-dotenv supabase openai
+          pip install requests python-dotenv supabase openai jsonschema
 
       - name: Run script
         run: python permits/fetch_and_save_permits.py
