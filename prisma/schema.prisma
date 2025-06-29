@@ -18,11 +18,14 @@ enum Role       {
   
 }    
 enum PlanStatus { 
-  active 
-  canceling 
-  canceled 
-  past_due 
+  incomplete
+  incomplete_expired
   trialing
+  active
+  past_due
+  canceled
+  unpaid
+  paused
 }
  
 model User {

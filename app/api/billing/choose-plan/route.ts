@@ -50,6 +50,7 @@ export async function POST(request: NextRequest) {
       userId: sessionData.userId!,
       plan: plan,
     },
+   
   });
   console.log('Checkout session created:', checkout);
   return NextResponse.json({ url: checkout.url });

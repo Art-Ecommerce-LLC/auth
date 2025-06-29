@@ -40,13 +40,18 @@ export async function POST(req: NextRequest) {
 
         const subscriptionSchedule = await stripe.subscriptionSchedules.create({
           from_subscription: s.subscription as string,
+          end_behavior: 'cancel',
         })
+
+        //  Get the plan status from the subscription schedule
+        const subscription = await stripe.subscriptions.retrieve(s.subscription as string)
+        const planStatus = subscription.status
 
         await db.user.update({
           where: { id: s.metadata!.userId },
           data : {
             role         : planToRole(s.metadata!.plan as 'plus' | 'base'),
-            planStatus   : PlanStatus.active,
+            planStatus   : planStatus as PlanStatus,
             currentPeriodEnd: new Date(subscriptionSchedule.phases[0].end_date * 1000), // Convert seconds to milliseconds
             stripeCustomerId     : s.customer as string,
             stripeSubscriptionId : s.subscription as string,
@@ -60,39 +65,58 @@ export async function POST(req: NextRequest) {
       
     }
 
-    /* 2️⃣  Grace-period cancel or re-activate */
+    // Anytime a user updates their subscription they have already established and are paying for, this will be called.
+    // 
     case 'customer.subscription.updated': {
-      const sub = event.data.object as Stripe.Subscription
-
-      if (sub.cancel_at) {
+      // There are a few cases to handle:
+      //1. The user is on Base plan and wants to update to Plus plan. Therefore, Change there role to PLUS.
+      //2. The user is on Plus plan and wants to update to Base plan. Therefore, Change there role to BASE.
+      //3. The user is on Plus plan and wants to cancel their subscription. Dont change their role, but change their planStatus to canceled.
+      //4. The user is on Base plan and wants to cancel their subscription. Dont change their role, but change their planStatus to canceled.
+      const sub       = event.data.object as Stripe.Subscription
+      const nowSec    = Math.floor(Date.now() / 1000)
+      const item      = sub.items.data[0]
+      const priceMap: Record<string, 'base' | 'plus'> = {
+        [process.env.STRIPE_PRICE_BASE_ID!]: 'base',
+        [process.env.STRIPE_PRICE_PLUS_ID!]: 'plus',
+      }
+      const newPlan   = priceMap[item.price.id] // 'base' or 'plus'
+      const newStatus = sub.status as PlanStatus
+      const cancelAt  = sub.cancel_at
+       // 1 & 2: active + plan change
+      if (newStatus === 'active' || newStatus === 'trialing') {
         await db.user.update({
           where: { stripeSubscriptionId: sub.id },
-          data : {
-            role                : Role.USER,          // ⬅️ back to free tier
-            planStatus          : PlanStatus.canceling,
-            currentPeriodEnd    : new Date(sub.items.data[0].current_period_end * 1000),
+          data: {
+            role:       planToRole(newPlan),  // BASE or PLUS
+            planStatus: newStatus as PlanStatus,
+            currentPeriodEnd: new Date(item.current_period_end * 1000),
           },
         })
-      } else if (sub.status === 'active') {
+        break
+      }
+      // 3 & 4: canceled
+      if (newStatus === 'canceled' || (cancelAt && cancelAt < nowSec)) {
         await db.user.update({
           where: { stripeSubscriptionId: sub.id },
-          data : { 
-            planStatus: PlanStatus.active,
-            role: planToRole(sub.items.data[0].plan.nickname as 'plus' | 'base'),
-            currentPeriodEnd: new Date(sub.items.data[0].current_period_end * 1000),
+          data: {
+            // leave role as-is (BASE or PLUS)
+            planStatus: newStatus as PlanStatus,
+            currentPeriodEnd: new Date(item.current_period_end * 1000),
           },
         })
-      } else if (sub.status === 'past_due') {
+        break
+      }
+      if (newStatus === 'past_due') {
         await db.user.update({
           where: { stripeSubscriptionId: sub.id },
-          data : { planStatus: PlanStatus.past_due },
+          data: { planStatus: newStatus as PlanStatus, role: Role.USER, currentPeriodEnd: new Date(item.current_period_end * 1000) },
         })
       }
-      break
     }
-
     case 'customer.subscription.deleted': {
     const sub = event.data.object as Stripe.Subscription;
+    const status = sub.status as PlanStatus;
     const periodEndTs = sub.items.data[0].current_period_end * 1000;
     const canceledAtTs = (sub.canceled_at ?? 0) * 1000;
     const periodEnd = new Date(periodEndTs);
@@ -103,9 +127,8 @@ export async function POST(req: NextRequest) {
       await db.user.update({
         where: { stripeSubscriptionId: sub.id },
         data: {
-          planStatus:   PlanStatus.canceled,
+          planStatus:   status as PlanStatus,
           currentPeriodEnd: periodEnd,
-          // role is unchanged (still PLUS or BASE)
         },
       });
     } else {
@@ -114,7 +137,7 @@ export async function POST(req: NextRequest) {
         where: { stripeSubscriptionId: sub.id },
         data: {
           role:         Role.USER,
-          planStatus:   PlanStatus.canceled,
+          planStatus:   status as PlanStatus,
           currentPeriodEnd: periodEnd,
         },
       });
