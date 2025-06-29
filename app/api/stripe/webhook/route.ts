@@ -37,21 +37,20 @@ export async function POST(req: NextRequest) {
     case 'checkout.session.completed': {
       try {
         const s = event.data.object as Stripe.Checkout.Session
-        // Get the next bill date from the customer's id
-        const customer = await stripe.subscriptionItems.retrieve(
-          s.subscription as string,
-          { expand: ['data'] }
-        )
-        const current_period_end = customer.current_period_end
-        console.log(new Date(current_period_end * 1000))
+
+        const subscriptionSchedule = await stripe.subscriptionSchedules.create({
+          from_subscription: s.subscription as string,
+        })
+
         await db.user.update({
           where: { id: s.metadata!.userId },
           data : {
             role         : planToRole(s.metadata!.plan as 'plus' | 'base'),
             planStatus   : PlanStatus.active,
-            currentPeriodEnd: new Date(current_period_end * 1000),
+            currentPeriodEnd: new Date(subscriptionSchedule.phases[0].end_date * 1000), // Convert seconds to milliseconds
             stripeCustomerId     : s.customer as string,
             stripeSubscriptionId : s.subscription as string,
+            stripeScheduleId     : subscriptionSchedule.id,
           },
         })
       } catch (err) {

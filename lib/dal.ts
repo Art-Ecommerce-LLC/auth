@@ -113,6 +113,7 @@ export const getSessionData = cache(async (pageType: string): Promise<SessionDat
                     email: userDB.email,
                     role: userDB.role,
                     planStatus: userDB.planStatus,
+                    currentPeriodEnd: userDB.currentPeriodEnd!,
                 };
                 break;
             default:
