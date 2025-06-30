@@ -2,7 +2,7 @@
 import NavbarDashServer  from '@/components/NavbarDashServer'
 import AdminDashboard    from '@/components/AdminDashboard'
 import UserDashboard     from '@/components/UserDashboard'
-import PermitServer      from '@/components/PermitServer'
+import DashboardClient from '@/components/DashboardClient'
 import { getSessionData } from '@/lib/dal'
 import { redirect } from 'next/navigation'
 
@@ -21,7 +21,7 @@ export default async function Dashboard() {
   return (
     <>
       <NavbarDashServer />
-      <PermitServer userId={session.userId!} />
+      <DashboardClient />
     </>
   )
 }
