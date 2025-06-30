@@ -1,85 +1,121 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { useState, useMemo, useEffect, useTransition } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
+import { fetchPermits } from '@/lib/api';
 import SummaryCards from './SummaryCards';
-import FilterPanel from './FilterPanel';
-import PermitTable from './PermitTable';           // default import of default-exported component
-import PermitMap from './PermitMap';  
-import type { Permit as PrismaPermit } from '@prisma/client';
+import PermitTable from './PermitTable';
+import PermitMap from './PermitMap';
+import { DashboardLoadingShimmer } from './DashboardLoadingShimmer';
+import RoleSelector from '@/components/RoleSelector';
 
-interface DashboardClientProps {
-  permits: PrismaPermit[];
-}
-export default function DashboardClient({ permits }: DashboardClientProps) {
+export default function DashboardClient() {
+  const router = useRouter();
+
+  // 1) Data fetching
+  const {
+    data: permits = [],
+    error,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ['permits'],
+    queryFn: fetchPermits,
+  });
+
+  // 2) Auth redirect
+  useEffect(() => {
+    if (error) {
+      if (error.message === 'UNAUTHORIZED') router.push('/login');
+      if (error.message === 'FORBIDDEN') router.push('/select-plan');
+    }
+  }, [error, router]);
+
+  // 3) UI state
   const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [roleFilter, setRoleFilter] = useState('all');
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const filtered = useMemo(() =>
-    permits
-      .filter(
-        p =>
-          roleFilter === 'all' ||
-          (Array.isArray(p.recommendedRoles) &&
-            p.recommendedRoles.includes(roleFilter))
-      )
-      .filter(p => p.description?.toLowerCase().includes(search.toLowerCase())),
-    [permits, roleFilter, search]
+
+  // 4b) role list memoization
+  const allRoles = useMemo(
+    () =>
+      Array.from(new Set(permits.flatMap(p => p.recommendedRoles || []))).filter(
+        (role): role is string => typeof role === 'string'
+      ),
+    [permits]
   );
 
+  // 4c) filtered permits
+  const filtered = useMemo(() => {
+    return permits
+      .filter(p =>
+        (roleFilter === 'all' ||
+          (Array.isArray(p.recommendedRoles) && p.recommendedRoles.includes(roleFilter))) &&
+        p.description?.toLowerCase().includes(search.toLowerCase())
+      );
+  }, [permits, roleFilter, search]);
+
+  // 4d) marker data
   const markerData = useMemo(
     () => filtered.map(p => ({ id: p.permitNumber, lat: p.latitude, lon: p.longitude })),
     [filtered]
   );
 
+  // 5) Conditional UI
+  if (isLoading) {
+    return <DashboardLoadingShimmer />;
+  }
+  if (error && error.message === 'NETWORK_ERROR') {
+    return (
+      <div>
+        <p>Failed to load permits.</p>
+        <button onClick={() => refetch()}>Retry</button>
+      </div>
+    );
+  }
+
+  // 6) Render
   return (
-    <div className="p-6 space-y-6">
-
-      <SummaryCards permits={filtered} />
-
-      <div className="flex flex-col md:flex-row gap-6">
-        <FilterPanel
-          roles={Array.from(
-            new Set(
-              permits
-                .flatMap(p => p.recommendedRoles || [])
-                .filter((role): role is string => typeof role === 'string')
-            )
-          )}
+    <div className="h-screen flex">
+      {/* Sidebar */}
+      <aside className="w-64 bg-gray-50 border-r p-6 overflow-auto h-full">
+        <RoleSelector
+          roles={allRoles}
           selectedRole={roleFilter}
-          onRoleChange={setRoleFilter}
-          search={search}
-          onSearchChange={setSearch}
+          onChange={(role: string) => setRoleFilter(role)}
         />
+      </aside>
 
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="h-[600px] overflow-auto">
-            <CardHeader><CardTitle>Permits List</CardTitle></CardHeader>
-            <CardContent className="p-0">
-              <PermitTable
-                permits={filtered}
-                selectedId={selectedId}
-                onSelect={setSelectedId}
-              />
-            </CardContent>
-          </Card>
+      {/* Main content: split into "left (cards+table)" and "right (map)" */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left region: summary cards on top, table below */}
+        <div className="flex-1 flex flex-col">
+          {/* Summary cards only above table */}
+          <div className="p-6 border-b">
+            <SummaryCards permits={filtered} />
+          </div>
 
-          <Card className="h-[600px]">
-        <CardHeader><CardTitle>Map View</CardTitle></CardHeader>
-        <CardContent className="p-0 h-full">
-          <div className="h-full">
-            <PermitMap
-              permits={markerData}
+          {/* Table takes all remaining left-space */}
+          <div className="flex-1 overflow-auto p-6 bg-white shadow-lg">
+            <PermitTable
+              permits={filtered}
               selectedId={selectedId}
               onSelect={setSelectedId}
             />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Right region: map fills its column top-to-bottom */}
+        <div className="w-1/3 overflow-auto p-6 bg-white shadow-lg">
+          <PermitMap
+            permits={markerData}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
+          />
         </div>
       </div>
     </div>
   );
 }
-

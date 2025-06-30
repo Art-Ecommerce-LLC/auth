@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { ArrowDown, ArrowUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Permit as PrismaPermit } from '@prisma/client';
 
@@ -42,8 +41,7 @@ export default function PermitTable({ permits, selectedId, onSelect }: TableProp
     });
 
   return (
-    <Card>
-      <CardHeader><CardTitle>Permit Dashboard</CardTitle></CardHeader>
+    <Card className="w-full mx-auto my-6">
       <CardContent>
         <div className="mb-4 flex items-center space-x-2">
           <Input placeholder="Search by description…" value={search} onChange={e => setSearch(e.target.value)} />
@@ -51,15 +49,18 @@ export default function PermitTable({ permits, selectedId, onSelect }: TableProp
         <div className="max-h-[540px] w-full overflow-x-auto">
           <table className="min-w-full border-collapse text-sm">
             <thead className="sticky top-0 z-10 bg-white shadow-sm"><tr>
-              <th onClick={()=>sortBy('description')} className={cn('cursor-pointer px-4 py-2 text-left', sortKey==='description'&&'font-semibold text-primary')}>Description<ArrowUp/></th>
-              <th onClick={()=>sortBy('issueDate')} className={cn('cursor-pointer px-4 py-2 text-left', sortKey==='issueDate'&&'font-semibold text-primary')}>Issue Date<ArrowUp /></th>
-             
+              <th onClick={()=>sortBy('description')} className={cn('cursor-pointer px-4 py-2 text-left', sortKey==='description'&&'font-semibold text-primary')}>Description</th>
+              <th onClick={()=>sortBy('issueDate')} className={cn('cursor-pointer px-4 py-2 text-left', sortKey==='issueDate'&&'font-semibold text-primary')}>Issue Date</th>
+              {/* Add urgency column */}
+              <th onClick={()=>sortBy('urgency')} className={cn('cursor-pointer px-4 py-2 text-left', sortKey==='urgency'&&'font-semibold text-primary')}>Urgency</th>
             </tr></thead>
             <tbody>
               {filtered.map(p=> (
                 <tr key={p.permitNumber} ref={el => { rowRefs.current[p.permitNumber] = el; }} onClick={()=>onSelect(p.permitNumber)} className={cn('cursor-pointer hover:bg-muted', selectedId===p.permitNumber&&'bg-primary/10')}>
                   <td className="px-4 py-2" title={p.description||''}>{p.description?.slice(0,80)}{p.description&&p.description.length>80?'…':''}</td>
                   <td className="px-4 py-2">{new Intl.DateTimeFormat('en-US',{dateStyle:'medium'}).format(new Date(p.issueDate))}</td>
+                  {/* Add urgency column */}
+                  <td className="px-4 py-2 w-10">{p.urgency}</td>
                 </tr>
               ))}
               {filtered.length===0&&<tr><td colSpan={3} className="px-4 py-2 text-center text-muted-foreground">No permits found.</td></tr>}
