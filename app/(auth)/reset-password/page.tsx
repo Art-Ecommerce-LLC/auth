@@ -1,17 +1,7 @@
 import { ResetPasswordForm } from "@/components/form/ResetPasswordForm"
 import { getSessionData } from "@/lib/dal"
-import { redirect } from "next/navigation"
 
 export default async function ResetPasswordPage() {
-
-  const sessionData = await getSessionData('resetPassword');
-
-  if (!sessionData.isAuth) {
-    redirect('/');
-  }
-
-  // Make this page only accessable once, if the user exits the page, they will need to request a new reset password link
-
 
 
   return (

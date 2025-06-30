@@ -1,7 +1,5 @@
 // app/dashboard/page.tsx
 import NavbarDashServer  from '@/components/NavbarDashServer'
-import AdminDashboard    from '@/components/AdminDashboard'
-import UserDashboard     from '@/components/UserDashboard'
 import DashboardClient from '@/components/DashboardClient'
 import { getSessionData } from '@/lib/dal'
 import { redirect } from 'next/navigation'

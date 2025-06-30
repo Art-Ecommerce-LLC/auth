@@ -51,16 +51,17 @@ export default function PermitTable({ permits, selectedId, onSelect }: TableProp
             <thead className="sticky top-0 z-10 bg-white shadow-sm"><tr>
               <th onClick={()=>sortBy('description')} className={cn('cursor-pointer px-4 py-2 text-left', sortKey==='description'&&'font-semibold text-primary')}>Description</th>
               <th onClick={()=>sortBy('issueDate')} className={cn('cursor-pointer px-4 py-2 text-left', sortKey==='issueDate'&&'font-semibold text-primary')}>Issue Date</th>
-              {/* Add urgency column */}
-              <th onClick={()=>sortBy('urgency')} className={cn('cursor-pointer px-4 py-2 text-left', sortKey==='urgency'&&'font-semibold text-primary')}>Urgency</th>
-            </tr></thead>
+              <th onClick={()=>sortBy('urgency')} className={cn('cursor-pointer px-4 py-2 text-left', sortKey==='urgency'&&'font-semibold text-primary')}>AI Urgency</th>
+              <th onClick={()=>sortBy('reasoningSummary')} className={cn('cursor-pointer px-4 py-2 text-left', sortKey==='reasoningSummary'&&'font-semibold text-primary')}>AI Reasoning</th>
+            </tr>
+            </thead>
             <tbody>
               {filtered.map(p=> (
                 <tr key={p.permitNumber} ref={el => { rowRefs.current[p.permitNumber] = el; }} onClick={()=>onSelect(p.permitNumber)} className={cn('cursor-pointer hover:bg-muted', selectedId===p.permitNumber&&'bg-primary/10')}>
                   <td className="px-4 py-2" title={p.description||''}>{p.description?.slice(0,80)}{p.description&&p.description.length>80?'…':''}</td>
                   <td className="px-4 py-2">{new Intl.DateTimeFormat('en-US',{dateStyle:'medium'}).format(new Date(p.issueDate))}</td>
-                  {/* Add urgency column */}
-                  <td className="px-4 py-2 w-10">{p.urgency}</td>
+                  <td className="px-4 py-2">{p.urgency}</td>
+                  <td className="px-4 py-2">{p.reasoningSummary}</td>  
                 </tr>
               ))}
               {filtered.length===0&&<tr><td colSpan={3} className="px-4 py-2 text-center text-muted-foreground">No permits found.</td></tr>}

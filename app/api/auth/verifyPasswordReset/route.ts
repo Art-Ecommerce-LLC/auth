@@ -3,7 +3,8 @@ import { decrypt } from '@/lib/encrypt';
 import { z } from 'zod';
 import db from '@/lib/db';
 import { compare } from 'bcrypt';
-import { manageSession } from '@/lib/session';
+import { createCookie } from '@/lib/cookie';
+import { create } from 'domain';
 
 const jwtSchema = z.object({
     session: z.string().min(1),
@@ -49,13 +50,15 @@ export async function GET(request: NextRequest) {
         if (!user) {
             return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/404`)
         }
-
-
-        await manageSession({
-            userId: user.id,
-            sessionType: 'resetPassword'
-        })
         
+        // If the cookie in the session is the same cookie as the one in the request headers then do not create the session
+        // Otherwise since it isn't there store the cookie in the request into the session cookie
+        if (session !== request.cookies.get('resetPassword')?.value) {
+            // Store the session in the request cookies
+            createCookie('resetPassword', sessionJWE, new Date(Date.now() + 1000 * 60 * 60 * 24 * 7)); // 7 days expiration
+            return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/reset-password`)
+        }
+        // If the session is valid, redirect to the reset password page
         return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/reset-password`)
 
     } catch (error) {

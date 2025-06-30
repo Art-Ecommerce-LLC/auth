@@ -17,6 +17,7 @@ import {
 import { Input } from "../ui/input"
 import { useRouter } from "next/navigation"
 import { useToast } from "../hooks/use-toast"
+import { useSearchParams } from "next/navigation";
  
 const formSchema = z.object({
     password: z.string().min(8).max(50).regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[a-zA-Z\d!@#$%^&*]{8,}$/, {
@@ -28,6 +29,7 @@ const formSchema = z.object({
   message: "Passwords don't match",
   path: ["confirmPassword"], // This will set the error on the confirmPassword field
 });
+
 
 
 export function ResetPasswordForm() {
@@ -42,14 +44,17 @@ export function ResetPasswordForm() {
         confirmPassword: "",
       },
     })
-   
+
+
     // 2. Define a submit handler.
     async function onSubmit(values: z.infer<typeof formSchema>) {
       // Do something with the form values.
       // submit the passwordChange request
       setLoading(true); // Show loading spinner
+      // Add the userId to the values
+ 
       try{
-        const response = await fetch('/api/auth/passwordChange', {
+        const response = await fetch(`/api/auth/passwordChange`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

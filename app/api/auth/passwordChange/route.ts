@@ -17,6 +17,8 @@ export async function POST(request: NextRequest) {
         // get the body of the request
         const body = await request.json()
 
+        // Get the post parameters off the url
+
         // validate the input
         const { password, confirmPassword } = userSchema.parse(body)
 
@@ -24,16 +26,18 @@ export async function POST(request: NextRequest) {
         if (password !== confirmPassword) {
             return NextResponse.json({ error: 'Passwords do not match' }, { status: 400 })
         }
-
-        // validate the cookie session
-        const cookieSession = (await cookies()).get('resetPassword')
-
-        if (!cookieSession) {
-            return NextResponse.json({ error: 'Session not found' }, { status: 404 })
+        
+        const sessionCookie = (await cookies()).get('resetPassword')?.value
+        
+        if (!sessionCookie) {
+            return NextResponse.json({ error: 'Session is required' }, { status: 400
+            })
         }
 
-        // Decrypt the session if it is valid
-        const session = await decrypt(cookieSession.value)
+        //  decrypt the session
+
+        const session = await decrypt(sessionCookie)
+
         console.log('session', session)
         // validate the session exists, first 
         const sessionData = await db.resetPassword.findUnique({
@@ -44,6 +48,7 @@ export async function POST(request: NextRequest) {
         if (!sessionData) {
             return NextResponse.json({ error: 'Session not found' }, { status: 404 })
         }
+
 
         const isValidateToken = await bcrypt.compare(session.token!, sessionData.token!)
 

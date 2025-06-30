@@ -3,14 +3,7 @@
 import * as jose from 'jose'
 
 const secretKey = jose.base64url.decode(process.env.ENCRYPTION_SECRET!); // Ensure it's defined
-
-export interface SessionPayload {
-  userId?: string;
-  sessionId?: string;
-  expiresAt?: string;
-  token?: string;
-}
-
+import { SessionPayload } from '@/models/models';
 // Function to encrypt a payload
 export async function encrypt(payload: Record<string, string | Date>): Promise<string> {
   try {

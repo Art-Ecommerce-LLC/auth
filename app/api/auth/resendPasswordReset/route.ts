@@ -11,7 +11,7 @@ import { deleteSession, manageSession } from "@/lib/session";
 export async function POST(request: NextRequest) {
     try {
         const session = (await cookies()).get('resetPassword');
-
+        console.log("Session cookie:", session);
         if (!session) {
             console.log("Session not found")
             return NextResponse.json({ error: "Session not found" }, { status: 404 })

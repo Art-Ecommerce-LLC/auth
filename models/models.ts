@@ -20,3 +20,9 @@ export interface SessionData {
     serviceToken?: string;
     error?: string;
 }
+export interface SessionPayload {
+  userId?: string;
+  sessionId?: string;
+  expiresAt?: string;
+  token?: string;
+}

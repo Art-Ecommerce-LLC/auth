@@ -104,6 +104,7 @@ Promise<{ token: string; expiresAt: Date, userId: string } |
       if (existingResetPassword) {
         // If a valid reset password exists, return it instead of creating a new one
         // Create a new one and store it since it is hashed
+        console.log(token,hashedToken)
         await db.resetPassword.update({
           where: { id: existingResetPassword.id },
           data: { token: hashedToken, expiresAt },
@@ -211,6 +212,7 @@ export async function manageSession({
         finalToken = await encrypt(sessionJWT);
         if (storeSession) {
           createCookie(sessionType, finalToken, sessionJWT.expiresAt);
+          console.log('cookie was created');
         }
         return { token: finalToken, expiresAt: sessionJWT.expiresAt};
 
