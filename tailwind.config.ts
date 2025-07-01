@@ -39,11 +39,11 @@ const config: Config = {
   				DEFAULT: 'hsl(var(--destructive))',
   				foreground: 'hsl(var(--destructive-foreground))'
   			},
-			success: {
-				DEFAULT: 'hsl(var(--success))',
-				foreground: 'hsl(var(--success-foreground))',
-				hover: 'hsl(var(--success-hover))',
-			},
+  			success: {
+  				DEFAULT: 'hsl(var(--success))',
+  				foreground: 'hsl(var(--success-foreground))',
+  				hover: 'hsl(var(--success-hover))'
+  			},
   			muted: {
   				DEFAULT: 'hsl(var(--muted))',
   				foreground: 'hsl(var(--muted-foreground))'
@@ -68,17 +68,20 @@ const config: Config = {
   				'5': 'hsl(var(--chart-5))'
   			}
   		},
-		screens: {
-			'custom-md': '829px', // Custom Breakpoint Header
-			'custom-520': '520px', // Custom Breakpoint Footer
-		  },
+  		screens: {
+  			'custom-md': '829px',
+  			'custom-520': '520px'
+  		},
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
   		},
   		fontFamily: {
-  			sans: ["var(--font-sans)", ...fontFamily.sans]
+  			sans: [
+  				'var(--font-sans)',
+                    ...fontFamily.sans
+                ]
   		},
   		keyframes: {
   			'accordion-down': {
@@ -97,16 +100,19 @@ const config: Config = {
   					height: '0'
   				}
   			},
-			"caret-blink": {
-				"0%,70%,100%": { opacity: "1" },
-				"20%,50%": { opacity: "0" },
-			},
+  			'caret-blink': {
+  				'0%,70%,100%': {
+  					opacity: '1'
+  				},
+  				'20%,50%': {
+  					opacity: '0'
+  				}
+  			}
   		},
-		
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out',
-			"caret-blink": "caret-blink 1.25s ease-out infinite",
+  			'caret-blink': 'caret-blink 1.25s ease-out infinite'
   		}
   	}
   },

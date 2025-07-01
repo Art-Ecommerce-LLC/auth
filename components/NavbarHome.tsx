@@ -2,7 +2,7 @@
 
 import React from "react";
 import {Navbar, NavbarBrand, NavbarMenuToggle, NavbarMenuItem, NavbarMenu, NavbarContent, NavbarItem, Link, Button} from "@heroui/react";
-import {AcmeLogo} from "./AcmeLogo";
+import PermitPulseNavbarLogo from "./PermitPulseNavbarLogo"; // Adjust the import path as necessary
 import { useSignOut } from "@/lib/signOut"; // Import the custom hook
 import { useRouter } from "next/navigation";
 
@@ -44,12 +44,12 @@ export default function NavbarHome({mfaVerified}: {mfaVerified : boolean}) {
 
       <NavbarContent className="sm:hidden lg:pr-3" justify="center">
         <NavbarBrand >
-          <AcmeLogo />
+          <PermitPulseNavbarLogo />
         </NavbarBrand>
       </NavbarContent>
       <NavbarContent className="hidden sm:flex gap-4" justify="center">
         <NavbarBrand>
-          <AcmeLogo />
+          <PermitPulseNavbarLogo />
         </NavbarBrand>
         <NavbarItem>
           <Link color="foreground" href="#">

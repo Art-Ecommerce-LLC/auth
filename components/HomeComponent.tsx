@@ -1,158 +1,83 @@
-// pages/index.js (Client Component)
-"use client";
+'use client';
 
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { CheckCircleIcon, ChatIcon, ShieldCheckIcon } from '@heroicons/react/solid';
 
-export default function HomeComponent() {
-  // Function to adjust hero section height
+export default function Home() {
   return (
-    <main>
-      <section className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center min-h-[calc(100vh-4rem)]">
-        <motion.div
-          className="text-center p-10 text-white align-bottom"
-          initial={{ opacity: 0, y: -50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.2 }}
-       
-        >
-          <h1 className="text-5xl font-bold mb-4">
-            Welcome to Developer Hub
-          </h1>
-          <p className="text-lg mb-8">
-            The ultimate platform for developers and project managers to streamline project delivery and collaboration.
-          </p>
-          <div className="space-x-4">
-            <Link href="/sign-up" className="bg-white text-indigo-500 px-6 py-3 rounded-lg font-semibold shadow-lg">
-              Get Started
+    <main className="min-h-screen w-full flex flex-col items-center bg-background text-foreground px-6 pt-20">
+      {/* Hero Section */}
+      <section className="max-w-4xl text-center space-y-6">
+        <h1 className="text-4xl md:text-5xl font-bold">
+          Know Before They Build.
+        </h1>
+        <p className="text-lg text-muted-foreground">
+          Permit Pulse sends real-time alerts and lets you explore new building permits in Encinitas — perfect for contractors, realtors, and local pros.
+        </p>
+        <Link href="/signup">
+          <Button size="lg">Get Alerts & Dashboard Access – $20/mo</Button>
+        </Link>
+      </section>
+
+      {/* How It Works */}
+      <section className="max-w-5xl mt-24 w-full space-y-8 text-center">
+        <h2 className="text-3xl font-semibold">How It Works</h2>
+        <div className="grid md:grid-cols-3 gap-6">
+          {[
+            ['Sign Up', 'Create your account and select your professional role.'],
+            ['Get Real-Time Alerts', 'Be notified instantly when relevant permits are issued.'],
+            ['Explore the Dashboard', 'Use filters, maps, and tables to find new leads.'],
+          ].map(([title, desc], i) => (
+            <Card key={i}>
+              <CardHeader>
+                <CardTitle>{title}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">{desc}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section className="max-w-4xl mt-24 w-full text-center space-y-6">
+        <h2 className="text-3xl font-semibold">Simple, Fair Pricing</h2>
+        <p className="text-muted-foreground">
+          Dashboard access includes real-time alerts. Buy high-value leads separately.
+        </p>
+        <Card className="mx-auto max-w-md">
+          <CardHeader>
+            <CardTitle>$20/month</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-muted-foreground">
+            <ul className="list-disc text-left pl-5">
+              <li>Access the live permit dashboard</li>
+              <li>Get real-time permit alerts</li>
+              <li>Filter by project value, type, urgency</li>
+              <li>Optional: purchase enriched leads</li>
+            </ul>
+            <Link href="/signup">
+              <Button className="mt-4 w-full">Start Now</Button>
             </Link>
-          </div>
-        </motion.div>
+          </CardContent>
+        </Card>
       </section>
 
-      {/* Features Section */}
-      <section className="py-20 bg-white text-black">
-        <div className="container mx-auto text-center">
-          <motion.h2
-            className="text-4xl font-bold mb-12"
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8 }}
-          >
-            Why Choose Developer Hub?
-          </motion.h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            <motion.div
-              className="p-6 border rounded-lg shadow-lg"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <CheckCircleIcon className="h-12 w-12 text-indigo-500 mx-auto mb-4" />
-              <h3 className="text-2xl font-semibold mb-4">Project Management</h3>
-              <p>
-                Organize, track, and manage your development projects efficiently with intuitive tools.
-              </p>
-            </motion.div>
-            <motion.div
-              className="p-6 border rounded-lg shadow-lg"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <ChatIcon className="h-12 w-12 text-indigo-500 mx-auto mb-4" />
-              <h3 className="text-2xl font-semibold mb-4">Collaboration Tools</h3>
-              <p>
-                Real-time communication and version control to ensure seamless collaboration between teams.
-              </p>
-            </motion.div>
-            <motion.div
-              className="p-6 border rounded-lg shadow-lg"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <ShieldCheckIcon className="h-12 w-12 text-indigo-500 mx-auto mb-4" />
-              <h3 className="text-2xl font-semibold mb-4">Secure & Reliable</h3>
-              <p>
-                Keep your data safe with industry-leading security protocols and multi-factor authentication.
-              </p>
-            </motion.div>
-          </div>
-        </div>
+      {/* FAQ & Footer Links */}
+      <section className="max-w-3xl mt-24 w-full text-center space-y-4">
+        <h3 className="text-xl font-semibold">FAQs</h3>
+        <p className="text-muted-foreground text-sm">
+          Don’t worry — if no permits are issued, you still have full dashboard access and historic data.
+        </p>
+        <p className="text-muted-foreground text-sm">
+          Data comes directly from the city of Encinitas and is updated hourly.
+        </p>
       </section>
 
-      {/* Testimonials Section */}
-      <section className="py-20 bg-gray-100">
-        <div className="container mx-auto text-center">
-          <motion.h2
-            className="text-4xl font-bold mb-12"
-            initial={{ opacity: 0, y: -50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            What Our Users Say
-          </motion.h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            <motion.div
-              className="p-6 border rounded-lg shadow-lg"
-              whileHover={{ scale: 1.05 }}
-            >
-              <p>
-              &quot;Developer Hub has revolutionized the way our team works together. It&apos;s the perfect tool for keeping everyone on track!&quot;
-              </p>
-              <p className="mt-4 text-sm font-semibold">- Jane Doe, Senior Developer</p>
-            </motion.div>
-            <motion.div
-              className="p-6 border rounded-lg shadow-lg"
-              whileHover={{ scale: 1.05 }}
-            >
-              <p>
-              &quot;The real-time collaboration features are top-notch. We&apos;ve seen a 30% increase in our project delivery speed!&quot;
-              </p>
-              <p className="mt-4 text-sm font-semibold">- John Smith, Project Manager</p>
-            </motion.div>
-            <motion.div
-              className="p-6 border rounded-lg shadow-lg"
-              whileHover={{ scale: 1.05 }}
-            >
-              <p>
-              &quot;I love the intuitive design and the secure environment. It helps us work better without worrying about security.&quot;
-              </p>
-              <p className="mt-4 text-sm font-semibold">- Sarah Lee, Software Engineer</p>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-indigo-500 text-white text-center">
-        <motion.div
-          className="container mx-auto"
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-        >
-          <h2 className="text-4xl font-bold mb-6">
-            Ready to Elevate Your Development?
-          </h2>
-          <p className="text-lg mb-8">
-            Sign up today and transform how you deliver projects as a developer or project manager.
-          </p>
-          <Link href="/sign-up" className="bg-white text-indigo-500 px-8 py-4 rounded-lg font-semibold shadow-lg">
-            Sign Up Now
-          </Link>
-        </motion.div>
-      </section>
-
-      {/* Footer Section */}
-      <footer className="bg-gray-800 text-gray-400 py-10">
-        <div className="container mx-auto text-center space-y-6">
-          <div className="space-x-4">
-            <Link href="/terms-of-service" className="hover:text-white">Terms of Service</Link>
-            <Link href="/privacy-policy" className="hover:text-white">Privacy Policy</Link>
-            <Link href="/contact" className="hover:text-white">Contact Us</Link>
-          </div>
-          <p>&copy; 2024 Art Ecommerce, LLC. All rights reserved.</p>
-        </div>
+      <footer className="mt-24 text-center text-sm text-muted-foreground pb-10">
+        © {new Date().getFullYear()} Permit Pulse. All rights reserved.
       </footer>
     </main>
   );

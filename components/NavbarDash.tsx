@@ -19,7 +19,7 @@ import {
 } from "@nextui-org/react";
 import { Settings } from "lucide-react";
 import { usePathname } from "next/navigation";   // ← NEW
-import { AcmeLogo } from "./AcmeLogo";
+import PermitPulseNavbarLogo from "./PermitPulseNavbarLogo";
 import { useRouter } from "next/navigation";
 import { useSignOut } from "@/lib/signOut";
 
@@ -49,14 +49,14 @@ export default function NavbarDash({ mfaVerified }: { mfaVerified: boolean }) {
       </NavbarContent>
       <NavbarContent className="sm:hidden pr-3" justify="center">
         <NavbarBrand>
-          <AcmeLogo />
+          <PermitPulseNavbarLogo />
         </NavbarBrand>
       </NavbarContent>
 
       {/* Desktop: brand centred */}
       <NavbarContent className="hidden sm:flex gap-6" justify="center">
         <NavbarBrand>
-          <AcmeLogo />
+          <PermitPulseNavbarLogo />
         </NavbarBrand>
       </NavbarContent>
 
