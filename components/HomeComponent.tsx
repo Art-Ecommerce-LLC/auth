@@ -255,13 +255,13 @@ export default function HomeComponent() {
                   <AccordionTrigger>What happens if no new permits are issued?</AccordionTrigger>
                   <AccordionContent>
                     You still maintain full access to our dashboard, historical data, and all features. When new permits
-                    are issued, you'll be the first to know.
+                    are issued, you&apos;ll be the first to know.
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="item-2">
                   <AccordionTrigger>How quickly will I receive permit notifications?</AccordionTrigger>
                   <AccordionContent>
-                    Our system checks for new permits multiple times daily. You'll typically receive notifications
+                    Our system checks for new permits multiple times daily. You&apos;ll typically receive notifications
                     within hours of a permit being issued by the city.
                   </AccordionContent>
                 </AccordionItem>
@@ -284,7 +284,7 @@ export default function HomeComponent() {
                   <AccordionTrigger>Do you cover areas outside of Encinitas?</AccordionTrigger>
                   <AccordionContent>
                     Currently, we specialize in Encinitas to ensure the highest quality data. We plan to expand to
-                    neighboring cities in the near future. Contact us if you'd like to be notified when we expand to
+                    neighboring cities in the near future. Contact us if you&apos;d like to be notified when we expand to
                     your area.
                   </AccordionContent>
                 </AccordionItem>
