@@ -269,7 +269,7 @@ export default function HomeComponent() {
                   <AccordionTrigger>Can I cancel my subscription anytime?</AccordionTrigger>
                   <AccordionContent>
                     Yes, you can cancel your subscription at any time. If you cancel during your 7-day free trial, you
-                    won't be charged.
+                    won&apos;t be charged.
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="item-4">
