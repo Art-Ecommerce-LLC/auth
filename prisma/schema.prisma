@@ -45,6 +45,8 @@ model User {
   role            Role       @default(USER)
   planStatus      PlanStatus @default(active)
   currentPeriodEnd     DateTime?
+
+  profession            String?
   
   googleToken     String?  @map("google_token")
   serviceToken    String  @map("service_token") @unique
@@ -116,28 +118,41 @@ model EmailVerification {
 }
 
 model Permit {
-  id                     String   @id @default(cuid())
-  permitNumber           String   @unique @map("permit_number")
-  address                String
-  latitude               Float
-  longitude              Float
-  status                 String
-  issueDate              DateTime @map("issue_date")
-  description            String
-  rawHash                String   @map("raw_hash")
-  urgency                String
-  projectValue           String   @map("project_value")
-  recommendedRoles       Json     @map("recommended_roles")
-  hotness                Int
-  alertSent              Boolean  @default(false) @map("alert_sent")
-  reasoningSummary       String   @map("reasoning_summary")
-  needsMorePermits       Boolean  @default(false) @map("needs_more_permits")
-  nextSteps              String   @map("next_steps")
-  createdAt              DateTime @default(now()) @map("created_at")
-  updatedAt              DateTime @updatedAt @map("updated_at")
+  id                String   @id @default(cuid())
+  permitNumber      String   @unique @map("permit_number")
+  address           String
+  latitude          Float
+  longitude         Float
+  status            String
+  issueDate         DateTime @map("issue_date")
+  description       String
+  alertSent         Boolean  @default(false) @map("alert_sent")
+  rawHash           String   @map("raw_hash")
+  reasoningSummary  String   @map("reasoning_summary")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
 
+  professions       PermitProfession[]  
   @@map("permits")
 }
+
+model PermitProfession {
+  id                     String   @id @default(cuid())
+  permit                 Permit   @relation(fields: [permitId], references: [id])
+  permitId               String   @map("permit_id")
+  profession             String
+  projectValueEstimate   Int?     @map("project_value_estimate")
+  urgencyScore           Int       @map("urgency_score")
+  leadValue              Int       @map("lead_value")
+  reasoning               String
+  nextSteps              String    @map("next_steps")
+  createdAt              DateTime  @default(now()) @map("created_at")
+  updatedAt              DateTime  @updatedAt @map("updated_at")
+
+  @@unique([permitId, profession])
+  @@map("permit_professions")
+}
+
 
 model Subscription {
   id             String   @id @default(cuid())

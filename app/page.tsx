@@ -1,7 +1,7 @@
   // pages/index.js (Client Component)
   "server-only";
-  // TODO - Make subscription plan, only one. The free trial is 7 days.
-  // TODO - Allow people to buy leads
+  // TODO - Make subscription plan, only one. The free trial is 7 days. Put stripe in production mode.
+  // TODO - 
   // Make table into this structure:
   // Permit Type	e.g. SolarAPP+ PV with Battery	Tells contractor if the job matches their trade
   //  Issue Date	e.g. June 29, 2025	Shows recency — fresh = higher conversion chance

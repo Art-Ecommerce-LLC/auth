@@ -59,8 +59,8 @@ config = EnvConfig()
 # ────────────────────────────────────────────────
 # Runtime flags & feature toggles  ───────────────
 # ────────────────────────────────────────────────
-DISABLE_EMAILS: bool = False   # Skip SMTP if True (dev / testing)
-REPROCESS_ALL: bool = False  # Make this true when deploying
+DISABLE_EMAILS: bool = True   # Skip SMTP if True (dev / testing)
+REPROCESS_ALL: bool = False
 
 # ────────────────────────────────────────────────
 # Geospatial constants for Encinitas  ────────────
@@ -103,11 +103,12 @@ class SupabaseService:
         return self.client.table("permits").select("*").eq("permit_number", permit_number).execute().data
 
     def insert_permit(self, payload):
-        # Final sanity check and timestamp defaults
+        """Insert a row in `permits` using **id** as the primary key.
+        We never send a `CaseId` column to PostgREST—only `id`."""
         now_iso = datetime.utcnow().isoformat()
-        payload['id'] = payload.get('id') or str(uuid.uuid4())
-        payload['created_at'] = payload.get('created_at') or now_iso
-        payload['updated_at'] = payload.get('updated_at') or now_iso
+        payload["id"] = payload.get("id") or str(uuid.uuid4())  # ← key fix
+        payload["created_at"] = payload.get("created_at") or now_iso
+        payload["updated_at"] = payload.get("updated_at") or now_iso
         return self.client.table("permits").insert(payload).execute()
 
     def update_permit(self, permit_number, payload):
@@ -187,57 +188,52 @@ class PermitAI:
                 function_call={"name": "format_permit_analysis"}
             )
 
-        # Base conversation
+        # 1) Strong system + user prompt
         system_message = {
             "role": "system",
             "content": (
-                "You are an expert in construction and real estate lead generation. "
-                "Return complete JSON for all fields; never null or omitted."
+                "You are an expert in construction and real-estate lead gen.\n"
+                "Return *only* a JSON object with exactly these keys: urgency, value, recommended_roles, reasoning_summary, needs_more_permits, next_steps.\n"
+                "If you cannot determine a field, use 'unknown' for strings or false for booleans."
             )
         }
         user_message = {
             "role": "user",
             "content": (
-                f"Description: {record.get('Description') or ''}\n"
-                f"Type: {record.get('CaseType') or ''}\n"
-                f"Project: {record.get('ProjectName') or ''}\n"
-                "Be explicit about whether this is a real estate lead."
+                f"Description: {record.get('Description', '')}\n"
+                f"Type: {record.get('CaseType', '')}\n"
+                "Be explicit whether this is a real-estate lead."
             )
         }
 
         messages = [system_message, user_message]
-        ai_output = {}
 
-        # Loop until all required fields are non-null
-        while True:
-            response = call_ai(messages)
-            ai_output = json.loads(response.choices[0].message.function_call.arguments)
+        # 2) One-shot call
+        response = call_ai(messages)
+        ai_output = json.loads(response.choices[0].message.function_call.arguments)
 
-            missing = [
-                field for field in PermitAI.REQUIRED_FIELDS
-                if ai_output.get(field) in (None, '', [], {})
-            ]
-            if not missing:
-                break
-
+        # 3) Validate once against our JSON Schema
+        try:
+            validate(instance=ai_output, schema=functions[0]["parameters"])
+        except ValidationError as err:
+            # Single focused reprompt
             reprompt = {
                 "role": "user",
                 "content": (
-                    f"Your output missed fields: {missing}. "
-                    "Please provide values for these fields only."
+                    f"I had a schema error: {err.message}. "
+                    "Please resend only the JSON object with those fields corrected."
                 )
             }
-            messages = [system_message, user_message, reprompt]
+            response = call_ai([system_message, user_message, reprompt])
+            ai_output = json.loads(response.choices[0].message.function_call.arguments)
 
-        # Fallback defaults
+        # 4) Inject IDs & timestamps
         now_iso = datetime.utcnow().isoformat()
-        ai_output.setdefault('id', str(uuid.uuid4()))
+        ai_output.setdefault('CaseId', str(uuid.uuid4()))
         ai_output['created_at'] = now_iso
         ai_output['updated_at'] = now_iso
 
         return ai_output
-
-
 class Geocoder:
     """Wrapper around Mapbox Geocoding with Encinitas safeguards."""
     def __init__(self, mapbox_api_key):
@@ -362,58 +358,69 @@ class PermitProcessor:
         hash_val = PermitHasher.compute(record)
         existing = self.supabase.get_existing_hash(permit_number)
 
-        ai_data = PermitAI.enrich(record)
-        if not ai_data:
-            return self._skip(permit_number, "AI enrichment failed", existing)
-
-        hotness_score = (3 if ai_data.get("urgency") == "high" else 2 if ai_data.get("urgency") == "medium" else 1)
-        hotness_score += (3 if ai_data.get("value") == "high" else 2 if ai_data.get("value") == "medium" else 1)
-
         address = record.get("Address")
         if not address:
             return self._skip(permit_number, "no address", existing)
 
-        
-
         lat, lon = self.geocoder.geocode_address(address)
         if lat is None or lon is None:
             return self._skip(permit_number, "geocode failed", existing)
-        
-        
-        roles = ai_data.get("recommended_roles") or []
-        if not isinstance(roles, list):
-            roles = [roles] if roles else []
-        roles = [r.lower() for r in roles if isinstance(r, str)]
 
-        payload = {
-            "address": address,
+        ai_data = PermitAI.enrich(record)
+        if not ai_data:
+            return self._skip(permit_number, "AI enrichment failed", existing)
+
+        now_iso = datetime.utcnow().isoformat()
+        # Use CaseId from the API as our primary key – stored in the DB column **id**
+        permit_id = record.get("CaseId") or str(uuid.uuid4())
+
+        permit_payload = {
+            "id": permit_id,                # matches permits.id (UUID)
+            "permit_number": permit_number,
+            "address": record.get("Address"),
             "latitude": lat,
             "longitude": lon,
-            "permit_number": permit_number,
             "status": record.get("CaseStatus"),
             "issue_date": record.get("IssueDate"),
             "description": record.get("Description"),
-            "raw_hash": hash_val,
-            "urgency": ai_data.get("urgency"),
-            "project_value": ai_data.get("value"),
-            "recommended_roles": roles,
-            "hotness": hotness_score,
             "alert_sent": False,
+            "raw_hash": hash_val,
             "reasoning_summary": ai_data.get("reasoning_summary"),
-            "needs_more_permits": ai_data.get("needs_more_permits", False),
-            "next_steps": ai_data.get("next_steps", ""),
+            "created_at": now_iso,
+            "updated_at": now_iso,
         }
 
+        # ── UPSERT permit ─────────────────────────────────────────────
         if existing:
-            existing = existing[0]
-            missing_fields = any(existing.get(k) is None for k in ["urgency", "project_value", "recommended_roles"])
-            if existing["raw_hash"] != hash_val or missing_fields:
-                self.supabase.update_permit(permit_number, payload)
-                return "updated"
-            return "unchanged"
+            print("🔗 Inserting profession for permit_id:", permit_id)
+            self.supabase.update_permit(permit_number, permit_payload)
+            print("✅ Inserted permit id:", permit_id)
         else:
-            self.supabase.insert_permit(payload)
-            return "new"
+            print("🔗 Inserting profession for permit_id:", permit_id)
+            self.supabase.insert_permit(permit_payload) 
+            print("✅ Inserted permit id:", permit_id) # insert_permit must store **id**, not CaseId!
+
+        # ── Insert profession rows ────────────────────────────────────
+        def map_level(x):
+            return {"low": 1, "medium": 2, "high": 3}.get((x or "").lower(), 0)
+
+        for role in ai_data.get("recommended_roles", []):
+            profession_payload = {
+                "permit_id": permit_id,               # FK → permits.id
+                "profession": role,
+                "project_value_estimate": map_level(ai_data.get("value")),
+                "urgency_score": map_level(ai_data.get("urgency")),
+                "lead_value": map_level(ai_data.get("value")),
+                "reasoning": ai_data.get("reasoning_summary"),
+                "next_steps": ai_data.get("next_steps"),
+                "created_at": now_iso,
+                "updated_at": now_iso,
+            }
+            self.supabase.client.table("permit_professions").insert(profession_payload).execute()
+
+        return "new-or-updated"
+
+
 
     def match_subscriptions(self, record):
         if record.get("alert_sent"):
